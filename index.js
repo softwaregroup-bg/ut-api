@@ -57,7 +57,7 @@ module.exports = async(config, errors) => {
     });
 
     return {
-        uiRoutes: config.ui && require('./ui')(documents).routes,
+        uiRoutes: config.ui && require('./ui')({service: config.service, ...config.ui, documents}).routes,
         rpcRoutes: function rpcRoutesApi(definitions) {
             return definitions.map(({
                 tags,

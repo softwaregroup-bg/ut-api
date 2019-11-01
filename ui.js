@@ -1,14 +1,13 @@
 const uiDistPath = require('swagger-ui-dist').getAbsoluteFSPath();
-const uiPath = '/docs';
-const path = require('path');
+const docsPath = require('path').join(__dirname, 'docs');
 const Boom = require('@hapi/boom');
 const apiList = require('./api');
 
-module.exports = documents => {
+module.exports = ({documents, service = 'server', path = '/' + service + '/docs'}) => {
     return {
         routes: [{
             method: 'GET',
-            path: `${uiPath}/{document}.json`,
+            path: `${path}/{document}.json`,
             options: {
                 auth: false,
                 handler: (request, h) => {
@@ -18,25 +17,32 @@ module.exports = documents => {
             }
         }, {
             method: 'GET',
-            path: `${uiPath}`,
+            path: `/docs`,
+            options: {
+                auth: false,
+                handler: (request, h) => h.redirect(path + '/')
+            }
+        }, {
+            method: 'GET',
+            path: `${path}/`,
             options: {
                 auth: false,
                 handler: (request, h) => h.response(apiList(documents)).type('text/html')
             }
         }, {
             method: 'GET',
-            path: `${uiPath}/{page*}`,
+            path: `${path}/{page*}`,
             options: {auth: false},
             handler: {
                 directory: {
-                    path: path.join(__dirname, 'docs'),
+                    path: docsPath,
                     index: true,
                     defaultExtension: 'html'
                 }
             }
         }, {
             method: 'GET',
-            path: `${uiPath}/ui/{page*}`,
+            path: `${path}/ui/{page*}`,
             options: {auth: false},
             handler: {
                 directory: {

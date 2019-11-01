@@ -5,7 +5,7 @@ module.exports = documents => `
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>API List</title>
-        <link rel="stylesheet" type="text/css" href="docs/api.css">
+        <link rel="stylesheet" type="text/css" href="api.css">
     </head>
     <body>
         <div id="api">
@@ -21,8 +21,8 @@ module.exports = documents => `
                                     <div class="description"/>${description}</div>
                                     <hr />
                                     <div class="description">API links</div>
-                                    <div class="link"/><a href="docs/swagger.html?${name}">Swagger</a></div>
-                                    <div class="link"/><a href="docs/redoc.html?${name}">Redoc</a></div>
+                                    <div class="link"/><a href="swagger.html?${name}">Swagger</a></div>
+                                    <div class="link"/><a href="redoc.html?${name}">Redoc</a></div>
                                 </div>
                             </div>`).join('\r\n')}
                         </div>
