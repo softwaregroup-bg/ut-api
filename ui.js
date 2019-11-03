@@ -24,6 +24,13 @@ module.exports = ({documents, service = 'server', path = '/' + service + '/docs'
             }
         }, {
             method: 'GET',
+            path,
+            options: {
+                auth: false,
+                handler: (request, h) => h.redirect(path + '/')
+            }
+        }, {
+            method: 'GET',
             path: `${path}/`,
             options: {
                 auth: false,
