@@ -1,3 +1,12 @@
+## [7.0.4](https://github.com/softwaregroup-bg/ut-api/compare/v7.0.3...v7.0.4) (2019-11-05)
+
+
+### Bug Fixes
+
+* change docs url ([fa33e1d](https://github.com/softwaregroup-bg/ut-api/commit/fa33e1d))
+
+
+
 ## [7.0.3](https://github.com/softwaregroup-bg/ut-api/compare/v7.0.2...v7.0.3) (2019-11-03)
 
 
