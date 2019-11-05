@@ -3,7 +3,7 @@ const docsPath = require('path').join(__dirname, 'docs');
 const Boom = require('@hapi/boom');
 const apiList = require('./api');
 
-module.exports = ({documents, service = 'server', path = '/' + service + '/docs'}) => {
+module.exports = ({documents, service = 'server', path = '/docs/' + service}) => {
     return {
         routes: [{
             method: 'GET',
