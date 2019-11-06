@@ -1,3 +1,12 @@
+# [7.1.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.0.4...v7.1.0) (2019-11-06)
+
+
+### Features
+
+* oidc ([5505b66](https://github.com/softwaregroup-bg/ut-api/commit/5505b66))
+
+
+
 ## [7.0.4](https://github.com/softwaregroup-bg/ut-api/compare/v7.0.3...v7.0.4) (2019-11-05)
 
 
