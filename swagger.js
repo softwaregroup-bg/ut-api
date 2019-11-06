@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+module.exports = oauth => `<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -84,7 +84,7 @@
             }
             // Build a system
             const ui = SwaggerUIBundle({
-                url: './' + (document.location.href.split('/').pop().split('?').pop() || 'rest') + '.json',
+                url: './' + (document.location.search.split('?').pop() || 'rest') + '.json',
                 dom_id: '#swagger-ui',
                 deepLinking: true,
                 presets: [
@@ -96,12 +96,17 @@
                     HideTopbarPlugin
                 ],
                 layout: 'StandaloneLayout',
+                displayOperationId: true,
+                filter: true,
+                operationsSorter: 'alpha',
+                oauth2RedirectUrl: document.location.href.split('/swagger.html')[0] + '/ui/oauth2-redirect.html',
                 validatorUrl: null
             })
+            ${oauth && `ui.initOAuth(${JSON.stringify(oauth)})`}
             window.ui = ui
         }
 
     </script>
 </body>
 
-</html>
+</html>`;

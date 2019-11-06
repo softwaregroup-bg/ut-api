@@ -90,7 +90,8 @@ h1 {
 }
 
 .api .title {
-    font-size: 22px;
+    font-size: 28px;
+    font-weight: bold;
     color: darkblue;
     margin-bottom: 10px;
 }

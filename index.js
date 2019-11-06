@@ -7,18 +7,31 @@ const convertJoi = joiSchema => joiToJsonSchema(joiSchema, (schema, j) => {
     return schema;
 });
 
-const emptyDoc = (namespace = 'custom') => ({
+const emptyDoc = (oidc, namespace = 'custom', version = '0.0.1') => ({
     swagger: '2.0',
     info: {
-        title: `Internal ${namespace} API`,
-        description: 'Internal microservices API',
-        version: '1.0.0'
+        title: namespace,
+        description: 'Internal microservice API',
+        version
     },
+    security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
+    securityDefinitions: oidc.reduce((prev, cur) => ({
+        ...prev,
+        [cur.issuer]: {
+            type: 'oauth2',
+            flow: 'accessCode',
+            authorizationUrl: cur.authorization_endpoint,
+            tokenUrl: cur.token_endpoint,
+            'x-tokenName': 'id_token',
+            scopes: {email: 'email'}
+        }
+    }), {}),
     paths: {}
 });
 
 module.exports = async(config, errors) => {
     const routes = {};
+    const oidc = await Promise.all(Object.values(config.oidc));
 
     let rest;
     switch (typeof config.document) {
@@ -29,7 +42,7 @@ module.exports = async(config, errors) => {
             rest = await swaggerParser.bundle(config.document);
             break;
         default:
-            rest = config.document || emptyDoc();
+            rest = config.document || emptyDoc(oidc);
     }
 
     await swaggerParser.validate(rest);
@@ -69,13 +82,14 @@ module.exports = async(config, errors) => {
                 params,
                 result,
                 validate,
-                handler
+                handler,
+                version
             }) => {
                 const paramsSchema = (params && params.isJoi) ? convertJoi(params) : params;
                 const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
                 const path = '/rpc/' + method.replace(/\./g, '/');
                 const namespace = method.split('.').shift();
-                if (!documents[namespace]) documents[namespace] = emptyDoc(namespace);
+                if (!documents[namespace]) documents[namespace] = emptyDoc(oidc, namespace, version);
                 const document = documents[namespace];
                 document.paths[path] = {
                     post: {
@@ -163,7 +177,7 @@ module.exports = async(config, errors) => {
                     method: 'POST',
                     path: getRoutePath(path),
                     options: {
-                        auth: false,
+                        auth: config.auth || false,
                         app,
                         timeout,
                         description,

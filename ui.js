@@ -2,8 +2,9 @@ const uiDistPath = require('swagger-ui-dist').getAbsoluteFSPath();
 const docsPath = require('path').join(__dirname, 'docs');
 const Boom = require('@hapi/boom');
 const apiList = require('./api');
+const swagger = require('./swagger');
 
-module.exports = ({documents, service = 'server', path = '/docs/' + service}) => {
+module.exports = ({documents, service = 'server', path = '/docs/' + service, initOAuth}) => {
     return {
         routes: [{
             method: 'GET',
@@ -36,6 +37,11 @@ module.exports = ({documents, service = 'server', path = '/docs/' + service}) =>
                 auth: false,
                 handler: (request, h) => h.response(apiList(documents)).type('text/html')
             }
+        }, {
+            method: 'GET',
+            path: `${path}/swagger.html`,
+            options: {auth: false},
+            handler: (request, h) => h.response(swagger(initOAuth)).type('text/html')
         }, {
             method: 'GET',
             path: `${path}/{page*}`,
