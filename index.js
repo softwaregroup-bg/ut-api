@@ -77,7 +77,7 @@ module.exports = async(config, errors) => {
                 app,
                 timeout,
                 method,
-                description = method,
+                description,
                 notes,
                 params,
                 result,
@@ -85,6 +85,8 @@ module.exports = async(config, errors) => {
                 handler,
                 version
             }) => {
+                if (!description) description = method;
+                if (!notes) notes = method;
                 const paramsSchema = (params && params.isJoi) ? convertJoi(params) : params;
                 const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
                 const path = '/rpc/' + method.replace(/\./g, '/');
@@ -95,7 +97,7 @@ module.exports = async(config, errors) => {
                     post: {
                         tags: ['rpc/' + method.split('.').shift()],
                         summary: description,
-                        description: notes && [].concat(notes).join('\n'),
+                        description: [].concat(notes).join('\n'),
                         operationId: method,
                         parameters: [{
                             name: 'body',
