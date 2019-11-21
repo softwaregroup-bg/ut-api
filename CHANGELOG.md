@@ -1,3 +1,12 @@
+## [7.1.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.1.0...v7.1.1) (2019-11-21)
+
+
+### Bug Fixes
+
+* notes and description are not allowed to be empty strings ([4505ddc](https://github.com/softwaregroup-bg/ut-api/commit/4505ddc))
+
+
+
 # [7.1.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.0.4...v7.1.0) (2019-11-06)
 
 
