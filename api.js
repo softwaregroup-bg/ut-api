@@ -11,21 +11,22 @@ module.exports = documents => `
         <div id="api">
             <div class="apiWrap">
                 <h1>API Docs</h1>
-                        <div class="api">${Object.entries(documents).map(([name, {info: {title, description, version} = {}}]) => `
-                            <div>
-                                <div class="namespace">
-                                    <div class="title"/>${title}</div>
-                                    <div class="tags">
-                                        <div class="version"/>${version}</div>
-                                    </div>
-                                    <div class="description"/>${description}</div>
-                                    <hr />
-                                    <div class="description">API links</div>
-                                    <div class="link"/><a href="swagger.html?${name}">Swagger</a></div>
-                                    <div class="link"/><a href="redoc.html?${name}">Redoc</a></div>
-                                </div>
-                            </div>`).join('\r\n')}
+                <div class="api">${Object.entries(documents).map(([name, {info: {title, description, version} = {}}]) => `
+                    <div>
+                        <div class="namespace">
+                            <div class="title"/>${title}</div>
+                            <div class="tags">
+                                <div class="version"/>${version}</div>
+                            </div>
+                            <div class="description"/>${description}</div>
+                            <hr />
+                            <div class="description">API links</div>
+                            <div class="link"/><a href="${name}.json">Swagger</a></div>
+                            <div class="link"/><a href="swagger.html?${name}">Swagger UI</a></div>
+                            <div class="link"/><a href="redoc.html?${name}">Redoc</a></div>
                         </div>
+                    </div>`).join('\r\n')}
+                </div>
             </div>
         </div>
     </body>
