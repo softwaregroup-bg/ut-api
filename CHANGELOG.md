@@ -1,3 +1,12 @@
+# [7.2.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.1.1...v7.2.0) (2019-11-22)
+
+
+### Features
+
+* show link to API json ([88fe67a](https://github.com/softwaregroup-bg/ut-api/commit/88fe67a))
+
+
+
 ## [7.1.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.1.0...v7.1.1) (2019-11-21)
 
 
