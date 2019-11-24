@@ -16,7 +16,7 @@
     <div id="redoc-container"></div>
     <script src="https://cdn.jsdelivr.net/npm/redoc@2.0.0-rc.18/bundles/redoc.standalone.js"> </script>
     <script>
-      Redoc.init('./' + (document.location.href.split('/').pop().split('?').pop() || 'rest') + '.json', {}, document.getElementById('redoc-container'))
+      Redoc.init('./' + (document.location.href.split('#')[0].split('/').pop().split('?').pop() || 'rest') + '.json', {}, document.getElementById('redoc-container'))
     </script>
   </body>
 </html>

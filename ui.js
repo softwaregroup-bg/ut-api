@@ -4,7 +4,7 @@ const Boom = require('@hapi/boom');
 const apiList = require('./api');
 const swagger = require('./swagger');
 
-module.exports = ({documents, service = 'server', path = '/docs/' + service, initOAuth}) => {
+module.exports = ({documents, service = 'server', path = '/api/' + service, initOAuth}) => {
     return {
         routes: [{
             method: 'GET',
@@ -18,10 +18,20 @@ module.exports = ({documents, service = 'server', path = '/docs/' + service, ini
             }
         }, {
             method: 'GET',
-            path: `/docs`,
+            path: '/api',
             options: {
                 auth: false,
                 handler: (request, h) => h.redirect(path + '/')
+            }
+        }, {
+            method: 'GET',
+            path: '/api.json',
+            options: {
+                auth: false,
+                handler: (request, h) => h.response(Object.entries(documents)
+                    .map(([name, {host, info: {title, description, version, 'x-ut-service': service} = {}}]) => ({
+                        name, title, description, version, host, service
+                    }))).type('application/json')
             }
         }, {
             method: 'GET',

@@ -1,3 +1,4 @@
+const path = require('path');
 const swaggerValidator = require('ut-swagger2-validator');
 const swaggerParser = require('swagger-parser');
 const joiToJsonSchema = require('joi-to-json-schema');
@@ -29,9 +30,9 @@ const emptyDoc = (oidc, namespace = 'custom', version = '0.0.1') => ({
     paths: {}
 });
 
-module.exports = async(config, errors) => {
+module.exports = async(config = {}, errors) => {
     const routes = {};
-    const oidc = await Promise.all(Object.values(config.oidc));
+    const oidc = await Promise.all(Object.values(config.oidc || {}));
 
     let rest;
     switch (typeof config.document) {
@@ -70,6 +71,8 @@ module.exports = async(config, errors) => {
     });
 
     return {
+        apiCss: path.join(__dirname, 'docs', 'api.css'),
+        apiList: require('./api'),
         uiRoutes: config.ui && require('./ui')({service: config.service, ...config.ui, documents}).routes,
         rpcRoutes: function rpcRoutesApi(definitions) {
             return definitions.map(({

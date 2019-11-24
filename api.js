@@ -1,3 +1,4 @@
+const prefix = (host, service) => `${host ? '//' + host : ''}${service ? '/api/' + service + '/' : ''}`;
 module.exports = documents => `
 <!DOCTYPE html>
 <html lang="en">
@@ -11,7 +12,7 @@ module.exports = documents => `
         <div id="api">
             <div class="apiWrap">
                 <h1>API Docs</h1>
-                <div class="api">${Object.entries(documents).map(([name, {info: {title, description, version} = {}}]) => `
+                <div class="api">${Object.entries(documents).map(([name, {host, info: {title, description, version, 'x-ut-service': service} = {}}]) => `
                     <div>
                         <div class="namespace">
                             <div class="title"/>${title}</div>
@@ -21,9 +22,9 @@ module.exports = documents => `
                             <div class="description"/>${description}</div>
                             <hr />
                             <div class="description">API links</div>
-                            <div class="link"/><a href="${name}.json">Swagger</a></div>
-                            <div class="link"/><a href="swagger.html?${name}">Swagger UI</a></div>
-                            <div class="link"/><a href="redoc.html?${name}">Redoc</a></div>
+                            <div class="link"/><a href="${prefix(host, service)}${name}.json">Swagger</a></div>
+                            <div class="link"/><a href="${prefix(host, service)}swagger.html?${name}">Swagger UI</a></div>
+                            <div class="link"/><a href="${prefix(host, service)}redoc.html?${name}">Redoc</a></div>
                         </div>
                     </div>`).join('\r\n')}
                 </div>
