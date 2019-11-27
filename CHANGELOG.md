@@ -1,3 +1,12 @@
+# [7.4.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.3.0...v7.4.0) (2019-11-27)
+
+
+### Features
+
+* aggregate api docs ([e9ea234](https://github.com/softwaregroup-bg/ut-api/commit/e9ea234))
+
+
+
 # [7.3.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.2.0...v7.3.0) (2019-11-24)
 
 
