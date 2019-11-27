@@ -28,8 +28,7 @@ module.exports = ({documents, service = 'server', base = '/api', path = base + '
                         info: {
                             title: service.namespace,
                             description: 'Internal microservice API',
-                            version: service.version,
-                            'x-ut-service': service.service
+                            version: service.version
                         }
                     }
                 }), {}))
@@ -63,8 +62,8 @@ module.exports = ({documents, service = 'server', base = '/api', path = base + '
             options: {
                 auth: false,
                 handler: (request, h) => h.response(Object.entries(documents)
-                    .map(([name, {host, info: {title, description, version, 'x-ut-service': service} = {}}]) => ({
-                        name, title, description, version, host, service
+                    .map(([namespace, {host, info: {title, description, version} = {}}]) => ({
+                        namespace, title, description, version, host
                     }))).type('application/json')
             }
         }, {

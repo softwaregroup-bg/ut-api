@@ -1,4 +1,4 @@
-const prefix = (host, service) => `${host ? './' + host : ''}${service ? '/api/' + service + '/' : ''}`;
+const prefix = (host, namespace) => `${host ? './' + host : ''}${namespace ? '/api/' + namespace + '/' : ''}`;
 module.exports = documents => `
 <!DOCTYPE html>
 <html lang="en">
@@ -12,7 +12,7 @@ module.exports = documents => `
         <div id="api">
             <div class="apiWrap">
                 <h1>API Docs</h1>
-                <div class="api">${Object.entries(documents).map(([name, {host, info: {title, description, version, 'x-ut-service': service} = {}}]) => `
+                <div class="api">${Object.entries(documents).map(([namespace, {host, info: {title, description, version} = {}}]) => `
                     <div>
                         <div class="namespace">
                             <div class="title"/>${title}</div>
@@ -22,9 +22,9 @@ module.exports = documents => `
                             <div class="description"/>${description}</div>
                             <hr />
                             <div class="description">API links</div>
-                            <div class="link"/><a href="${prefix(host, service)}${name}.json">Swagger</a></div>
-                            <div class="link"/><a href="${prefix(host, service)}swagger.html?${name}">Swagger UI</a></div>
-                            <div class="link"/><a href="${prefix(host, service)}redoc.html?${name}">Redoc</a></div>
+                            <div class="link"/><a href="${prefix(host, namespace)}${namespace}.json">Swagger</a></div>
+                            <div class="link"/><a href="${prefix(host, namespace)}swagger.html?${namespace}">Swagger UI</a></div>
+                            <div class="link"/><a href="${prefix(host, namespace)}redoc.html?${namespace}">Redoc</a></div>
                         </div>
                     </div>`).join('\r\n')}
                 </div>
