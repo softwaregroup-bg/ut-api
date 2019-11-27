@@ -1,4 +1,4 @@
-const prefix = (host, service) => `${host ? '//' + host : ''}${service ? '/api/' + service + '/' : ''}`;
+const prefix = (host, service) => `${host ? './' + host : ''}${service ? '/api/' + service + '/' : ''}`;
 module.exports = documents => `
 <!DOCTYPE html>
 <html lang="en">

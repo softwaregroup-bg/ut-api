@@ -16,6 +16,33 @@ module.exports = ({documents, service = 'server', base = '/api', path = base + '
                     return document ? h.response(document).type('application/json') : Boom.notFound();
                 }
             }
+        }, services && {
+            method: 'GET',
+            path: `${base}/internal/`,
+            options: {auth: false},
+            handler: async(request, h) =>
+                apiList((await services()).reduce((prev, service) => ({
+                    ...prev,
+                    [service.namespace]: {
+                        host: service.host && (service.host + (service.port ? ':' + service.port : '')),
+                        info: {
+                            title: service.namespace,
+                            description: 'Internal microservice API',
+                            version: service.version,
+                            'x-ut-service': service.service
+                        }
+                    }
+                }), {}))
+        }, proxy && {
+            method: 'GET',
+            path: `${base}/internal/{serviceHost}:{servicePort}/{doc*}`,
+            options: {auth: false},
+            handler: {
+                proxy: {
+                    passThrough: true,
+                    uri: `http://{serviceHost}:{servicePort}/{doc}`
+                }
+            }
         }, {
             method: 'GET',
             path: base,
@@ -80,33 +107,6 @@ module.exports = ({documents, service = 'server', base = '/api', path = base + '
                     index: false
                 }
             }
-        }, proxy && {
-            method: 'GET',
-            path: `${base}/{service}/{document}.json`,
-            options: {auth: false},
-            handler: {
-                proxy: {
-                    passThrough: true,
-                    uri: `http://${proxy.prefix || ''}${service}${proxy.suffix || '-service'}:${proxy.port}/{path}`
-                }
-            }
-        }, services && {
-            method: 'GET',
-            path: `${base}/proxy/`,
-            options: {auth: false},
-            handler: async(request, h) =>
-                apiList((await services()).reduce((prev, service) => ({
-                    ...prev,
-                    [service.namespace]: {
-                        host: service.host && (service.host + (service.port ? ':' + service.port : '')),
-                        info: {
-                            title: service.namespace,
-                            description: 'Internal microservice API',
-                            version: service.version,
-                            'x-ut-service': service.service
-                        }
-                    }
-                }), {}))
         }].filter(Boolean)
     };
 };
