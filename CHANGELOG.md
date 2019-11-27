@@ -1,3 +1,12 @@
+## [7.4.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.0...v7.4.1) (2019-11-27)
+
+
+### Bug Fixes
+
+* internal api docs handling ([89d3e32](https://github.com/softwaregroup-bg/ut-api/commit/89d3e32))
+
+
+
 # [7.4.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.3.0...v7.4.0) (2019-11-27)
 
 
