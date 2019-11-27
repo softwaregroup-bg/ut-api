@@ -1,3 +1,12 @@
+## [7.4.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.1...v7.4.2) (2019-11-27)
+
+
+### Bug Fixes
+
+* use proper namespace ([a7a7638](https://github.com/softwaregroup-bg/ut-api/commit/a7a7638))
+
+
+
 ## [7.4.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.0...v7.4.1) (2019-11-27)
 
 
