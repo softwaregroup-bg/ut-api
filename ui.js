@@ -4,7 +4,7 @@ const Boom = require('@hapi/boom');
 const apiList = require('./api');
 const swagger = require('./swagger');
 
-module.exports = ({documents, service = 'server', path = '/api/' + service, initOAuth}) => {
+module.exports = ({documents, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, services}) => {
     return {
         routes: [{
             method: 'GET',
@@ -18,14 +18,21 @@ module.exports = ({documents, service = 'server', path = '/api/' + service, init
             }
         }, {
             method: 'GET',
-            path: '/api',
+            path: base,
             options: {
                 auth: false,
                 handler: (request, h) => h.redirect(path + '/')
             }
         }, {
             method: 'GET',
-            path: '/api.json',
+            path: '/documentation',
+            options: {
+                auth: false,
+                handler: (request, h) => h.redirect(path + '/')
+            }
+        }, {
+            method: 'GET',
+            path: base + '.json',
             options: {
                 auth: false,
                 handler: (request, h) => h.response(Object.entries(documents)
@@ -35,10 +42,10 @@ module.exports = ({documents, service = 'server', path = '/api/' + service, init
             }
         }, {
             method: 'GET',
-            path,
+            path: `${base}/{service}`,
             options: {
                 auth: false,
-                handler: (request, h) => h.redirect(path + '/')
+                handler: (request, h) => h.redirect(request.uri + '/')
             }
         }, {
             method: 'GET',
@@ -49,12 +56,12 @@ module.exports = ({documents, service = 'server', path = '/api/' + service, init
             }
         }, {
             method: 'GET',
-            path: `${path}/swagger.html`,
+            path: `${base}/{service}/swagger.html`,
             options: {auth: false},
             handler: (request, h) => h.response(swagger(initOAuth)).type('text/html')
         }, {
             method: 'GET',
-            path: `${path}/{page*}`,
+            path: `${base}/{service}/{page*}`,
             options: {auth: false},
             handler: {
                 directory: {
@@ -65,7 +72,7 @@ module.exports = ({documents, service = 'server', path = '/api/' + service, init
             }
         }, {
             method: 'GET',
-            path: `${path}/ui/{page*}`,
+            path: `${base}/{service}/ui/{page*}`,
             options: {auth: false},
             handler: {
                 directory: {
@@ -73,6 +80,33 @@ module.exports = ({documents, service = 'server', path = '/api/' + service, init
                     index: false
                 }
             }
-        }]
+        }, proxy && {
+            method: 'GET',
+            path: `${base}/{service}/{document}.json`,
+            options: {auth: false},
+            handler: {
+                proxy: {
+                    passThrough: true,
+                    uri: `http://${proxy.prefix || ''}${service}${proxy.suffix || '-service'}:${proxy.port}/{path}`
+                }
+            }
+        }, services && {
+            method: 'GET',
+            path: `${base}/proxy/`,
+            options: {auth: false},
+            handler: async(request, h) =>
+                apiList((await services()).reduce((prev, service) => ({
+                    ...prev,
+                    [service.namespace]: {
+                        host: service.host && (service.host + (service.port ? ':' + service.port : '')),
+                        info: {
+                            title: service.namespace,
+                            description: 'Internal microservice API',
+                            version: service.version,
+                            'x-ut-service': service.service
+                        }
+                    }
+                }), {}))
+        }].filter(Boolean)
     };
 };
