@@ -22,9 +22,9 @@ module.exports = documents => `
                             <div class="description"/>${description}</div>
                             <hr />
                             <div class="description">API links</div>
-                            <div class="link"/><a href="${prefix(host, namespace)}${namespace}.json">Swagger</a></div>
-                            <div class="link"/><a href="${prefix(host, namespace)}swagger.html?${namespace}">Swagger UI</a></div>
-                            <div class="link"/><a href="${prefix(host, namespace)}redoc.html?${namespace}">Redoc</a></div>
+                            <div class="link"/><a href="${prefix(host, namespace)}swagger.json">Swagger</a></div>
+                            <div class="link"/><a href="${prefix(host, namespace)}swagger.html">Swagger UI</a></div>
+                            <div class="link"/><a href="${prefix(host, namespace)}redoc.html">Redoc</a></div>
                         </div>
                     </div>`).join('\r\n')}
                 </div>

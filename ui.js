@@ -8,11 +8,11 @@ module.exports = ({documents, service = 'server', base = '/api', path = base + '
     return {
         routes: [{
             method: 'GET',
-            path: `${path}/{document}.json`,
+            path: `${base}/{namespace}/swagger.json`,
             options: {
                 auth: false,
                 handler: (request, h) => {
-                    const document = documents[request.params.document];
+                    const document = documents[request.params.namespace];
                     return document ? h.response(document).type('application/json') : Boom.notFound();
                 }
             }

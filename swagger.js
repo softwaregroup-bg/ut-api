@@ -84,7 +84,7 @@ module.exports = oauth => `<!DOCTYPE html>
             }
             // Build a system
             const ui = SwaggerUIBundle({
-                url: './' + (document.location.search.split('?').pop() || 'rest') + '.json',
+                url: './swagger.json',
                 dom_id: '#swagger-ui',
                 deepLinking: true,
                 presets: [
