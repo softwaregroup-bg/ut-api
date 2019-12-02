@@ -3,6 +3,8 @@ const docsPath = require('path').join(__dirname, 'docs');
 const Boom = require('@hapi/boom');
 const apiList = require('./api');
 const swagger = require('./swagger');
+const path = require('path');
+const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 
 module.exports = ({documents, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, services}) => {
     return {
@@ -104,6 +106,16 @@ module.exports = ({documents, service = 'server', base = '/api', path = base + '
                 directory: {
                     path: uiDistPath,
                     index: false
+                }
+            }
+        }, {
+            method: 'GET',
+            path: '/oauth2-redirect.html',
+            options: {auth: false},
+            handler: {
+                file: {
+                    path: redirect,
+                    confine: uiDistPath
                 }
             }
         }].filter(Boolean)

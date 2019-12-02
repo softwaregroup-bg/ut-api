@@ -99,7 +99,7 @@ module.exports = oauth => `<!DOCTYPE html>
                 displayOperationId: true,
                 filter: true,
                 operationsSorter: 'alpha',
-                oauth2RedirectUrl: document.location.href.split('/swagger.html')[0] + '/ui/oauth2-redirect.html',
+                oauth2RedirectUrl: document.location.origin + '/oauth2-redirect.html',
                 validatorUrl: null
             })
             ${oauth && `ui.initOAuth(${JSON.stringify(oauth)})`}
