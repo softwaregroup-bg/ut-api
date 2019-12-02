@@ -1,3 +1,12 @@
+## [7.4.4](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.3...v7.4.4) (2019-12-02)
+
+
+### Bug Fixes
+
+* simplify oauth2 redirect URL ([61b2b70](https://github.com/softwaregroup-bg/ut-api/commit/61b2b70))
+
+
+
 ## [7.4.3](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.2...v7.4.3) (2019-12-02)
 
 
