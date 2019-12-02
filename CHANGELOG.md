@@ -1,3 +1,12 @@
+## [7.4.3](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.2...v7.4.3) (2019-12-02)
+
+
+### Bug Fixes
+
+* simplify api URL ([fa49d61](https://github.com/softwaregroup-bg/ut-api/commit/fa49d61))
+
+
+
 ## [7.4.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.1...v7.4.2) (2019-11-27)
 
 
