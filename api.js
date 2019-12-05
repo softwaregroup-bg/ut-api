@@ -15,16 +15,16 @@ module.exports = documents => `
                 <div class="api">${Object.entries(documents).map(([namespace, {host, info: {title, description, version} = {}}]) => `
                     <div>
                         <div class="namespace">
-                            <div class="title"/>${title}</div>
+                            <div class="title">${title}</div>
                             <div class="tags">
-                                <div class="version"/>${version}</div>
+                                <div class="version">${version}</div>
                             </div>
-                            <div class="description"/>${description}</div>
+                            <div class="description">${description}</div>
                             <hr />
                             <div class="description">API links</div>
-                            <div class="link"/><a href="${prefix(host, namespace)}swagger.json">Swagger</a></div>
-                            <div class="link"/><a href="${prefix(host, namespace)}swagger.html">Swagger UI</a></div>
-                            <div class="link"/><a href="${prefix(host, namespace)}redoc.html">Redoc</a></div>
+                            <div class="link"><a href="${prefix(host, namespace)}swagger.json">Swagger</a></div>
+                            <div class="link"><a href="${prefix(host, namespace)}swagger.html">Swagger UI</a></div>
+                            <div class="link"><a href="${prefix(host, namespace)}redoc.html">Redoc</a></div>
                         </div>
                     </div>`).join('\r\n')}
                 </div>
