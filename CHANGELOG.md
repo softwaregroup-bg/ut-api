@@ -1,3 +1,12 @@
+## [7.4.5](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.4...v7.4.5) (2019-12-05)
+
+
+### Bug Fixes
+
+* don't enable empty security definitions if no oidc list is specified ([3094ff8](https://github.com/softwaregroup-bg/ut-api/commit/3094ff8))
+
+
+
 ## [7.4.4](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.3...v7.4.4) (2019-12-02)
 
 
