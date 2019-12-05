@@ -15,18 +15,20 @@ const emptyDoc = (oidc, namespace = 'custom', version = '0.0.1') => ({
         description: 'Internal microservice API',
         version
     },
-    security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
-    securityDefinitions: oidc.reduce((prev, cur) => ({
-        ...prev,
-        [cur.issuer]: {
-            type: 'oauth2',
-            flow: 'accessCode',
-            authorizationUrl: cur.authorization_endpoint,
-            tokenUrl: cur.token_endpoint,
-            'x-tokenName': 'id_token',
-            scopes: {email: 'email'}
-        }
-    }), {}),
+    ...oidc.length && {
+        security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
+        securityDefinitions: oidc.reduce((prev, cur) => ({
+            ...prev,
+            [cur.issuer]: {
+                type: 'oauth2',
+                flow: 'accessCode',
+                authorizationUrl: cur.authorization_endpoint,
+                tokenUrl: cur.token_endpoint,
+                'x-tokenName': 'id_token',
+                scopes: {email: 'email'}
+            }
+        }), {})
+    },
     paths: {}
 });
 

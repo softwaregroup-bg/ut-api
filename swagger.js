@@ -102,7 +102,7 @@ module.exports = oauth => `<!DOCTYPE html>
                 oauth2RedirectUrl: document.location.origin + '/oauth2-redirect.html',
                 validatorUrl: null
             })
-            ${oauth && `ui.initOAuth(${JSON.stringify(oauth)})`}
+            ${oauth ? `ui.initOAuth(${JSON.stringify(oauth)})` : ''}
             window.ui = ui
         }
 
