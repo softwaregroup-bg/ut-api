@@ -5,6 +5,15 @@ const joiToJsonSchema = require('joi-to-json-schema');
 const Boom = require('@hapi/boom');
 const convertJoi = joiSchema => joiToJsonSchema(joiSchema, (schema, j) => {
     if (schema.type === 'array' && !schema.items) schema.items = {};
+
+    if (j._examples && j._examples.length > 0) {
+        schema.examples = j._examples;
+    }
+
+    if (j._examples && j._examples.length === 1) {
+        schema.example = j._examples[0];
+    }
+
     return schema;
 });
 
@@ -88,13 +97,14 @@ module.exports = async(config = {}, errors) => {
                 result,
                 validate,
                 handler,
-                version
+                version,
+                route
             }) => {
                 if (!description) description = method;
                 if (!notes) notes = method;
                 const paramsSchema = (params && params.isJoi) ? convertJoi(params) : params;
                 const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
-                const path = '/rpc/' + method.replace(/\./g, '/');
+                const path = route || ('/rpc/' + method.replace(/\./g, '/'));
                 const namespace = method.split('.').shift();
                 if (!documents[namespace]) documents[namespace] = emptyDoc(oidc, namespace, version);
                 const document = documents[namespace];
