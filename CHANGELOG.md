@@ -1,3 +1,12 @@
+## [7.4.6](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.5...v7.4.6) (2019-12-10)
+
+
+### Bug Fixes
+
+* path and examples ([6a063c6](https://github.com/softwaregroup-bg/ut-api/commit/6a063c6))
+
+
+
 ## [7.4.5](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.4...v7.4.5) (2019-12-05)
 
 
