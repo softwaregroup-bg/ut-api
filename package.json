@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "swagger-ui-dist": "^3.24.3",
-    "tap": "^13.1.1",
+    "tap": "^12.7.0",
     "ut-tools": "^6.30.5"
   },
   "peerDependencies": {},
