@@ -105,7 +105,7 @@ module.exports = async(config = {}, errors) => {
             }) => {
                 if (!description) description = method;
                 if (!notes) notes = method;
-                const bodySchema = (params && params.isJoi) ? convertJoi(params) : params;
+                const bodySchema = (validate && validate.payload && convertJoi(validate.payload)) || ((params && params.isJoi) ? convertJoi(params) : params);
                 const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
                 const namespace = method.split('.').shift();
                 if (!documents[namespace]) documents[namespace] = emptyDoc(oidc, namespace, version);
