@@ -41,6 +41,28 @@ const emptyDoc = (oidc, namespace = 'custom', version = '0.0.1') => ({
     paths: {}
 });
 
+const rpcProps = method => ({
+    id: {
+        schema: {
+            oneOf: [
+                {type: 'string'},
+                {type: 'number'}
+            ]
+        },
+        example: '1'
+    },
+    jsonrpc: {
+        type: 'string',
+        enum: ['2.0'],
+        example: '2.0'
+    },
+    method: {
+        type: 'string',
+        enum: [method],
+        example: method
+    }
+});
+
 module.exports = async(config = {}, errors) => {
     const routes = {};
     const oidc = await Promise.all(Object.values(config.oidc || {}));
@@ -62,14 +84,14 @@ module.exports = async(config = {}, errors) => {
     const validator = await swaggerValidator(rest);
     const documents = {rest};
 
-    const getRoutePath = path => [rest.basePath, path].filter(x => x).join('');
+    const getRoutePath = path => [rest.basePath, path].filter(Boolean).join('');
 
     Object.entries(rest.paths).forEach(([path, methods]) => {
         Object.entries(methods).forEach(([method, schema]) => {
             const {operationId, responses} = schema;
             if (!operationId) throw new Error('operationId must be defined');
             const successCodes = Object.keys(responses).map(x => +x).filter(code => code >= 200 && code < 300);
-            if (successCodes.length !== 1) throw new Error('Exactly 1 successful HTTP status code must be defined');
+            if (successCodes.length !== 1) throw new Error('Exactly one successful HTTP status code must be defined');
             const [namespace] = operationId.split('.');
             if (!routes[namespace]) routes[namespace] = [];
             routes[namespace].push({
@@ -96,62 +118,47 @@ module.exports = async(config = {}, errors) => {
                 params,
                 result,
                 validate,
+                pre,
                 handler,
                 version,
-                route
+                route: path = '/rpc/' + method.replace(/\./g, '/'),
+                httpMethod = 'POST',
+                auth
             }) => {
                 if (!description) description = method;
                 if (!notes) notes = method;
-                const paramsSchema = (params && params.isJoi) ? convertJoi(params) : params;
+                const bodySchema = (validate && validate.payload && convertJoi(validate.payload)) ||
+                {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: ['id', 'jsonrpc', 'method', 'params'],
+                    properties: {
+                        ...rpcProps(method),
+                        timeout: {
+                            type: 'number',
+                            example: null,
+                            nullable: true
+                        },
+                        ...params && {params: params.isJoi ? convertJoi(params) : params}
+                    }
+                };
                 const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
-                const path = route || ('/rpc/' + method.replace(/\./g, '/'));
                 const namespace = method.split('.').shift();
                 if (!documents[namespace]) documents[namespace] = emptyDoc(oidc, namespace, version);
                 const document = documents[namespace];
                 document.paths[path] = {
-                    post: {
+                    [httpMethod.toLowerCase()]: {
                         tags: ['rpc/' + method.split('.').shift()],
                         summary: description,
                         description: [].concat(notes).join('\n'),
                         operationId: method,
-                        parameters: [{
+                        parameters: [bodySchema && {
                             name: 'body',
                             in: 'body',
                             description: 'body',
                             required: true,
-                            schema: {
-                                type: 'object',
-                                additionalProperties: false,
-                                required: ['id', 'jsonrpc', 'method', 'params'],
-                                properties: {
-                                    id: {
-                                        schema: {
-                                            oneOf: [
-                                                {type: 'string'},
-                                                {type: 'number'}
-                                            ]
-                                        },
-                                        example: '1'
-                                    },
-                                    timeout: {
-                                        type: 'number',
-                                        example: null,
-                                        nullable: true
-                                    },
-                                    jsonrpc: {
-                                        type: 'string',
-                                        enum: ['2.0'],
-                                        example: '2.0'
-                                    },
-                                    method: {
-                                        type: 'string',
-                                        enum: [method],
-                                        example: method
-                                    },
-                                    ...paramsSchema && {params: paramsSchema}
-                                }
-                            }
-                        }],
+                            schema: bodySchema
+                        }].filter(Boolean),
                         responses: {
                             default: {
                                 description: 'Invalid request',
@@ -159,30 +166,14 @@ module.exports = async(config = {}, errors) => {
                             },
                             200: {
                                 description: 'Successful response',
-                                schema: {
+                                schema: !resultSchema ? {
+                                    type: 'object'
+                                } : {
                                     type: 'object',
                                     additionalProperties: false,
                                     required: ['id', 'jsonrpc', 'method'],
                                     properties: {
-                                        id: {
-                                            schema: {
-                                                oneOf: [
-                                                    {type: 'string'},
-                                                    {type: 'number'}
-                                                ]
-                                            },
-                                            example: '1'
-                                        },
-                                        jsonrpc: {
-                                            type: 'string',
-                                            enum: ['2.0'],
-                                            example: '2.0'
-                                        },
-                                        method: {
-                                            type: 'string',
-                                            enum: [method],
-                                            example: method
-                                        },
+                                        ...rpcProps(method),
                                         ...resultSchema && {result: resultSchema}
                                     }
                                 }
@@ -191,11 +182,12 @@ module.exports = async(config = {}, errors) => {
                     }
                 };
                 return {
-                    method: 'POST',
+                    method: httpMethod,
                     path: getRoutePath(path),
                     options: {
-                        auth: config.auth || false,
+                        auth: (config.auth && auth) || false,
                         app,
+                        pre,
                         timeout,
                         description,
                         notes,
@@ -230,7 +222,16 @@ module.exports = async(config = {}, errors) => {
                                 headers,
                                 pathParameters: params
                             });
-                            if (validation.length > 0) throw Boom.boomify(errors['bus.swagger.requestValidation']({validation}), {statusCode: 400});
+                            if (validation.length > 0) {
+                                throw Boom.boomify(errors['bus.requestValidation']({
+                                    validation,
+                                    params: {
+                                        method: operationId
+                                    }
+                                }), {
+                                    statusCode: 400
+                                });
+                            }
 
                             const msg = {
                                 ...(Array.isArray(payload) ? {list: payload} : payload),
@@ -258,7 +259,14 @@ module.exports = async(config = {}, errors) => {
                             }
                             const responseValidation = await validate.response({status: successCode, body});
                             if (responseValidation.length > 0) {
-                                const error = Boom.boomify(errors['bus.swagger.responseValidation']({responseValidation}), {statusCode: 500});
+                                const error = Boom.boomify(errors['bus.responseValidation']({
+                                    validation: responseValidation,
+                                    params: {
+                                        method: operationId
+                                    }
+                                }), {
+                                    statusCode: 500
+                                });
                                 error.output.headers['x-envoy-decorator-operation'] = operationId;
                                 throw error;
                             }
