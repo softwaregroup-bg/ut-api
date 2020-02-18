@@ -41,7 +41,7 @@ module.exports = ({documents, service = 'server', base = '/api', path = base + '
             handler: {
                 proxy: {
                     passThrough: true,
-                    uri: `http://{serviceHost}:{servicePort}/{doc}`
+                    uri: 'http://{serviceHost}:{servicePort}/{doc}'
                 }
             }
         }, {
