@@ -1,3 +1,12 @@
+# [7.5.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.7...v7.5.0) (2020-02-18)
+
+
+### Features
+
+* allow more route configuration ([e0cbd22](https://github.com/softwaregroup-bg/ut-api/commit/e0cbd22330e38866577d1815eea7007626c16f94))
+
+
+
 ## [7.4.7](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.6...v7.4.7) (2020-01-17)
 
 
