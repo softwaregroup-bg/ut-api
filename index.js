@@ -41,6 +41,28 @@ const emptyDoc = (oidc, namespace = 'custom', version = '0.0.1') => ({
     paths: {}
 });
 
+const rpcProps = method => ({
+    id: {
+        schema: {
+            oneOf: [
+                {type: 'string'},
+                {type: 'number'}
+            ]
+        },
+        example: '1'
+    },
+    jsonrpc: {
+        type: 'string',
+        enum: ['2.0'],
+        example: '2.0'
+    },
+    method: {
+        type: 'string',
+        enum: [method],
+        example: method
+    }
+});
+
 module.exports = async(config = {}, errors) => {
     const routes = {};
     const oidc = await Promise.all(Object.values(config.oidc || {}));
@@ -105,7 +127,21 @@ module.exports = async(config = {}, errors) => {
             }) => {
                 if (!description) description = method;
                 if (!notes) notes = method;
-                const bodySchema = (validate && validate.payload && convertJoi(validate.payload)) || ((params && params.isJoi) ? convertJoi(params) : params);
+                const bodySchema = (validate && validate.payload && convertJoi(validate.payload)) ||
+                {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: ['id', 'jsonrpc', 'method', 'params'],
+                    properties: {
+                        ...rpcProps(method),
+                        timeout: {
+                            type: 'number',
+                            example: null,
+                            nullable: true
+                        },
+                        ...params && {params: params.isJoi ? convertJoi(params) : params}
+                    }
+                };
                 const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
                 const namespace = method.split('.').shift();
                 if (!documents[namespace]) documents[namespace] = emptyDoc(oidc, namespace, version);
@@ -121,38 +157,7 @@ module.exports = async(config = {}, errors) => {
                             in: 'body',
                             description: 'body',
                             required: true,
-                            schema: {
-                                type: 'object',
-                                additionalProperties: false,
-                                required: ['id', 'jsonrpc', 'method', 'params'],
-                                properties: {
-                                    id: {
-                                        schema: {
-                                            oneOf: [
-                                                {type: 'string'},
-                                                {type: 'number'}
-                                            ]
-                                        },
-                                        example: '1'
-                                    },
-                                    timeout: {
-                                        type: 'number',
-                                        example: null,
-                                        nullable: true
-                                    },
-                                    jsonrpc: {
-                                        type: 'string',
-                                        enum: ['2.0'],
-                                        example: '2.0'
-                                    },
-                                    method: {
-                                        type: 'string',
-                                        enum: [method],
-                                        example: method
-                                    },
-                                    ...bodySchema && {params: bodySchema}
-                                }
-                            }
+                            schema: bodySchema
                         }].filter(Boolean),
                         responses: {
                             default: {
@@ -168,25 +173,7 @@ module.exports = async(config = {}, errors) => {
                                     additionalProperties: false,
                                     required: ['id', 'jsonrpc', 'method'],
                                     properties: {
-                                        id: {
-                                            schema: {
-                                                oneOf: [
-                                                    {type: 'string'},
-                                                    {type: 'number'}
-                                                ]
-                                            },
-                                            example: '1'
-                                        },
-                                        jsonrpc: {
-                                            type: 'string',
-                                            enum: ['2.0'],
-                                            example: '2.0'
-                                        },
-                                        method: {
-                                            type: 'string',
-                                            enum: [method],
-                                            example: method
-                                        },
+                                        ...rpcProps(method),
                                         ...resultSchema && {result: resultSchema}
                                     }
                                 }
