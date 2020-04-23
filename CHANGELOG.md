@@ -1,3 +1,12 @@
+# [7.6.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.5.0...v7.6.0) (2020-04-23)
+
+
+### Features
+
+* enable configuring payload params ([fc22fdf](https://github.com/softwaregroup-bg/ut-api/commit/fc22fdf057da6679f7cb66937529a952f9811b72))
+
+
+
 # [7.5.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.4.7...v7.5.0) (2020-02-18)
 
 
