@@ -117,6 +117,7 @@ module.exports = async(config = {}, errors) => {
                 notes,
                 params,
                 result,
+                body,
                 validate,
                 pre,
                 handler,
@@ -143,12 +144,12 @@ module.exports = async(config = {}, errors) => {
                     }
                 };
                 const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
-                const namespace = method.split('.').shift();
+                const namespace = method.split('.')[0];
                 if (!documents[namespace]) documents[namespace] = emptyDoc(oidc, namespace, version);
                 const document = documents[namespace];
                 document.paths[path] = {
                     [httpMethod.toLowerCase()]: {
-                        tags: ['rpc/' + method.split('.').shift()],
+                        tags: ['rpc/' + method.split('.')[0]],
                         summary: description,
                         description: [].concat(notes).join('\n'),
                         operationId: method,
@@ -192,6 +193,7 @@ module.exports = async(config = {}, errors) => {
                         description,
                         notes,
                         tags,
+                        ...body && {payload: body},
                         validate,
                         handler
                     }
