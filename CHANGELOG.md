@@ -1,3 +1,12 @@
+# [7.7.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.6.0...v7.7.0) (2020-05-12)
+
+
+### Features
+
+* auth ([8c5b13e](https://github.com/softwaregroup-bg/ut-api/commit/8c5b13e8aeba1b09dfe201ebf07561927136f4bd))
+
+
+
 # [7.6.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.5.0...v7.6.0) (2020-04-23)
 
 
