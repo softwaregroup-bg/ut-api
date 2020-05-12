@@ -17,26 +17,12 @@ const convertJoi = joiSchema => joiToJsonSchema(joiSchema, (schema, j) => {
     return schema;
 });
 
-const emptyDoc = (oidc, namespace = 'custom', version = '0.0.1') => ({
+const emptyDoc = (namespace = 'custom', version = '0.0.1') => ({
     swagger: '2.0',
     info: {
         title: namespace,
         description: 'Internal microservice API',
         version
-    },
-    ...oidc.length && {
-        security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
-        securityDefinitions: oidc.reduce((prev, cur) => ({
-            ...prev,
-            [cur.issuer]: {
-                type: 'oauth2',
-                flow: 'accessCode',
-                authorizationUrl: cur.authorization_endpoint,
-                tokenUrl: cur.token_endpoint,
-                'x-tokenName': 'id_token',
-                scopes: {email: 'email'}
-            }
-        }), {})
     },
     paths: {}
 });
@@ -63,9 +49,8 @@ const rpcProps = method => ({
     }
 });
 
-module.exports = async(config = {}, errors) => {
+module.exports = async(config = {}, errors, issuers) => {
     const routes = {};
-    const oidc = await Promise.all(Object.values(config.oidc || {}));
 
     let rest;
     switch (typeof config.document) {
@@ -76,7 +61,7 @@ module.exports = async(config = {}, errors) => {
             rest = await swaggerParser.bundle(config.document);
             break;
         default:
-            rest = config.document || emptyDoc(oidc);
+            rest = config.document || emptyDoc();
     }
 
     await swaggerParser.validate(rest);
@@ -106,12 +91,9 @@ module.exports = async(config = {}, errors) => {
     return {
         apiCss: path.join(__dirname, 'docs', 'api.css'),
         apiList: require('./api'),
-        uiRoutes: config.ui && require('./ui')({service: config.service, ...config.ui, documents}).routes,
+        uiRoutes: config.ui && require('./ui')({service: config.service, ...config.ui, documents, issuers}).routes,
         rpcRoutes: function rpcRoutesApi(definitions) {
             return definitions.map(({
-                tags,
-                app,
-                timeout,
                 method,
                 description,
                 notes,
@@ -119,12 +101,18 @@ module.exports = async(config = {}, errors) => {
                 result,
                 body,
                 validate,
-                pre,
-                handler,
                 version,
                 route: path = '/rpc/' + method.replace(/\./g, '/'),
                 httpMethod = 'POST',
-                auth
+                auth = config.auth,
+                app,
+                pre,
+                tags,
+                handler,
+                cors,
+                cache,
+                id,
+                security
             }) => {
                 if (!description) description = method;
                 if (!notes) notes = method;
@@ -145,7 +133,7 @@ module.exports = async(config = {}, errors) => {
                 };
                 const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
                 const namespace = method.split('.')[0];
-                if (!documents[namespace]) documents[namespace] = emptyDoc(oidc, namespace, version);
+                if (!documents[namespace]) documents[namespace] = emptyDoc(namespace, version);
                 const document = documents[namespace];
                 document.paths[path] = {
                     [httpMethod.toLowerCase()]: {
@@ -186,16 +174,19 @@ module.exports = async(config = {}, errors) => {
                     method: httpMethod,
                     path: getRoutePath(path),
                     options: {
-                        auth: (config.auth && auth) || false,
-                        app,
-                        pre,
-                        timeout,
+                        auth,
                         description,
                         notes,
-                        tags,
                         ...body && {payload: body},
                         validate,
-                        handler
+                        app,
+                        pre,
+                        tags,
+                        handler,
+                        cors,
+                        cache,
+                        id,
+                        security
                     }
                 };
             });

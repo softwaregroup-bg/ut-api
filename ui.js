@@ -6,16 +6,40 @@ const swagger = require('./swagger');
 const path = require('path');
 const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 
-module.exports = ({documents, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, services}) => {
+module.exports = ({documents, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, services, issuers}) => {
+    let security;
     return {
         routes: [{
             method: 'GET',
             path: `${base}/{namespace}/swagger.json`,
             options: {
                 auth: false,
-                handler: (request, h) => {
+                handler: async(request, h) => {
                     const document = documents[request.params.namespace];
-                    return document ? h.response(document).type('application/json') : Boom.notFound();
+
+                    if (issuers && !security) {
+                        const oidc = await issuers();
+                        security = oidc && oidc.length && {
+                            security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
+                            securityDefinitions: oidc.reduce((prev, cur) => ({
+                                ...prev,
+                                [cur.issuer]: {
+                                    type: 'oauth2',
+                                    flow: 'authorizationCode',
+                                    authorizationUrl: cur.authorization_endpoint,
+                                    tokenUrl: cur.token_endpoint,
+                                    // 'x-tokenName': 'id_token',
+                                    scopes: {email: 'email'}
+                                }
+                            }), {})
+                        };
+                    }
+
+                    if (document) {
+                        return h.response({...security, ...document}).type('application/json');
+                    } else {
+                        return Boom.notFound();
+                    }
                 }
             }
         }, services && {
