@@ -1,3 +1,12 @@
+## [7.8.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.8.0...v7.8.1) (2020-05-22)
+
+
+### Bug Fixes
+
+* pass module name ([569c79f](https://github.com/softwaregroup-bg/ut-api/commit/569c79f01dee5ee9a32f7c64b616513680856f6a))
+
+
+
 # [7.8.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.7.0...v7.8.0) (2020-05-22)
 
 
