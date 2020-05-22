@@ -1,3 +1,12 @@
+# [7.8.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.7.0...v7.8.0) (2020-05-22)
+
+
+### Features
+
+* route reload ([bcb3452](https://github.com/softwaregroup-bg/ut-api/commit/bcb345272aaf7c3ecb39cb3c60a6fcac319ff28d))
+
+
+
 # [7.7.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.6.0...v7.7.0) (2020-05-12)
 
 
