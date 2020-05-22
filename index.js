@@ -67,22 +67,27 @@ module.exports = async(config = {}, errors, issuers) => {
     await swaggerParser.validate(rest);
 
     const validator = await swaggerValidator(rest);
-    const documents = {rest};
-    const moduleDoc = {};
+    const documents = {rest: {doc: rest}};
 
     const getRoutePath = path => [rest.basePath, path].filter(Boolean).join('');
 
-    const routesMap = {};
-    function register(moduleName, value) {
-        if (!routesMap[moduleName]) routesMap[moduleName] = {};
-        routesMap[moduleName][`${value.method.toUpperCase()} ${value.path}`] = value;
+    const routesMap = new Map();
+
+    function register(where, moduleName, method, path, value) {
+        let map = where.get(moduleName);
+        if (!map) {
+            map = {};
+            where.set(moduleName, map);
+        }
+        map[`${method.toUpperCase()} ${path}`] = value;
     }
-    function unregister(moduleName, method, path) {
-        if (!routesMap[moduleName]) return;
+    function unregister(where, moduleName, method, path) {
+        const map = where.get(moduleName);
+        if (!map) return;
         if (!method && !path) {
-            delete routesMap[moduleName];
+            where.set(moduleName, {});
         } else {
-            delete routesMap[moduleName][`${method.toUpperCase()} ${path}`];
+            delete map[`${method.toUpperCase()} ${path}`];
         }
     }
 
@@ -103,8 +108,30 @@ module.exports = async(config = {}, errors, issuers) => {
         });
     });
 
-    const uiRoutes = config.ui && require('./ui')({service: config.service, ...config.ui, documents, issuers}).routes;
-    if (uiRoutes) uiRoutes.forEach(route => register('utApi', route));
+    function apidoc(namespace) {
+        if (namespace) {
+            const {doc, map} = documents[namespace] || {};
+            const paths = {};
+            if (map) {
+                for (const mod of map.values()) {
+                    Object.entries(mod).forEach(([name, value]) => {
+                        const [method, path] = name.split(' ', 2);
+                        if (!paths[path]) paths[path] = {};
+                        paths[path][method.toLowerCase()] = value;
+                    });
+                }
+            }
+            return {
+                ...doc,
+                paths
+            };
+        } else {
+            return Object.entries(documents).map(([name, value]) => [name, value.doc]);
+        }
+    };
+
+    const uiRoutes = require('./ui')({service: config.service, ...config.ui, apidoc, issuers}).routes;
+    if (uiRoutes) uiRoutes.forEach(route => register(routesMap, 'utApi', route.method, route.path, route));
 
     return {
         apiCss: path.join(__dirname, 'docs', 'api.css'),
@@ -151,13 +178,15 @@ module.exports = async(config = {}, errors, issuers) => {
                 };
                 const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
                 const namespace = method.split('.')[0];
-                if (!documents[namespace]) documents[namespace] = emptyDoc(namespace, version);
-                if (moduleName && !moduleDoc[moduleName]) moduleDoc[moduleName] = [];
+                if (!documents[namespace]) {
+                    documents[namespace] = {
+                        doc: emptyDoc(namespace, version),
+                        map: new Map()
+                    };
+                }
                 const document = documents[namespace];
-                if (!document.paths[path]) document.paths[path] = {};
-                if (moduleName) moduleDoc[moduleName].push([httpMethod.toLowerCase(), path, document.paths]);
-                document.paths[path][httpMethod.toLowerCase()] = {
-                    tags: ['rpc/' + method.split('.')[0]],
+                register(document.map, moduleName, httpMethod, path, {
+                    tags: [moduleName ? `rpc/${method.split('.')[0]} (${moduleName}@${version})` : `rpc/${method.split('.')[0]}`],
                     summary: description,
                     description: [].concat(notes).join('\n'),
                     operationId: method,
@@ -188,7 +217,7 @@ module.exports = async(config = {}, errors, issuers) => {
                             }
                         }
                     }
-                };
+                });
                 return {
                     method: httpMethod,
                     path: getRoutePath(path),
@@ -209,7 +238,7 @@ module.exports = async(config = {}, errors, issuers) => {
                     }
                 };
             });
-            if (moduleName) result.forEach(route => register(moduleName, route));
+            if (moduleName) result.forEach(route => register(routesMap, moduleName, route.method, route.path, route));
             return result;
         },
         restRoutes({namespace, fn, object}) {
@@ -292,24 +321,24 @@ module.exports = async(config = {}, errors, issuers) => {
                     }
                 };
             });
-            result.forEach(route => register(namespace, route));
+            result.forEach(route => register(routesMap, namespace, route.method, route.path, route));
             return result;
         },
         route(routes, moduleName = 'utApi') {
-            [].concat(routes).forEach(route => register(moduleName, route));
+            [].concat(routes).forEach(route => register(routesMap, moduleName, route.method, route.path, route));
         },
         deleteRoute({namespace, method, path}) {
-            unregister(namespace, method, path);
-            if (Array.isArray(moduleDoc[namespace])) {
-                moduleDoc[namespace].forEach(([key, path, paths]) => {
-                    delete paths[path][key];
-                    if (!Object.keys(paths[path]).length) delete paths[path];
-                });
-                delete moduleDoc[namespace];
-            }
+            unregister(routesMap, namespace, method, path);
+            Object.values(documents).forEach(({map}) => {
+                if (map) unregister(map, namespace, method, path);
+            });
         },
         routes() {
-            return [].concat(...Object.values(routesMap).map(routes => Object.values(routes)));
+            const result = new Map();
+            for (const map of routesMap.values()) {
+                Object.entries(map).forEach(([key, value]) => result.set(key, value));
+            }
+            return Array.from(result.values());
         }
     };
 };

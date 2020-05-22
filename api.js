@@ -12,7 +12,7 @@ module.exports = documents => `
         <div id="api">
             <div class="apiWrap">
                 <h1>API Docs</h1>
-                <div class="api">${Object.entries(documents).map(([namespace, {host, info: {title, description, version} = {}}]) => `
+                <div class="api">${documents.map(([namespace, {host, info: {title, description, version} = {}}]) => `
                     <div>
                         <div class="namespace">
                             <div class="title">${title}</div>

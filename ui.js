@@ -6,7 +6,7 @@ const swagger = require('./swagger');
 const path = require('path');
 const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 
-module.exports = ({documents, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, services, issuers}) => {
+module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, services, issuers}) => {
     let security;
     return {
         routes: [{
@@ -15,7 +15,7 @@ module.exports = ({documents, service = 'server', base = '/api', path = base + '
             options: {
                 auth: false,
                 handler: async(request, h) => {
-                    const document = documents[request.params.namespace];
+                    const document = apidoc(request.params.namespace);
 
                     if (issuers && !security) {
                         const oidc = await issuers();
@@ -87,7 +87,7 @@ module.exports = ({documents, service = 'server', base = '/api', path = base + '
             path: base + '.json',
             options: {
                 auth: false,
-                handler: (request, h) => h.response(Object.entries(documents)
+                handler: (request, h) => h.response(apidoc()
                     .map(([namespace, {host, info: {title, description, version} = {}}]) => ({
                         namespace, title, description, version, host
                     }))).type('application/json')
@@ -104,7 +104,7 @@ module.exports = ({documents, service = 'server', base = '/api', path = base + '
             path: `${path}/`,
             options: {
                 auth: false,
-                handler: (request, h) => h.response(apiList(documents)).type('text/html')
+                handler: (request, h) => h.response(apiList(apidoc())).type('text/html')
             }
         }, {
             method: 'GET',
