@@ -6,10 +6,10 @@
     "@hapi/boom": "8.0.1",
     "joi-to-json-schema": "5.1.0",
     "swagger-parser": "6.0.5",
+    "swagger-ui-dist": "^3.25.4",
     "ut-swagger2-validator": "^0.3.1"
   },
   "devDependencies": {
-    "swagger-ui-dist": "^3.24.3",
     "tap": "^12.7.0",
     "ut-tools": "^6.33.2"
   },
