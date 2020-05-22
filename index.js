@@ -50,7 +50,7 @@ const rpcProps = method => ({
 });
 
 module.exports = async(config = {}, errors, issuers) => {
-    const routes = {};
+    const swaggerRoutes = {};
 
     let rest;
     switch (typeof config.document) {
@@ -68,8 +68,23 @@ module.exports = async(config = {}, errors, issuers) => {
 
     const validator = await swaggerValidator(rest);
     const documents = {rest};
+    const moduleDoc = {};
 
     const getRoutePath = path => [rest.basePath, path].filter(Boolean).join('');
+
+    const routesMap = {};
+    function register(moduleName, value) {
+        if (!routesMap[moduleName]) routesMap[moduleName] = {};
+        routesMap[moduleName][`${value.method.toUpperCase()} ${value.path}`] = value;
+    }
+    function unregister(moduleName, method, path) {
+        if (!routesMap[moduleName]) return;
+        if (!method && !path) {
+            delete routesMap[moduleName];
+        } else {
+            delete routesMap[moduleName][`${method.toUpperCase()} ${path}`];
+        }
+    }
 
     Object.entries(rest.paths).forEach(([path, methods]) => {
         Object.entries(methods).forEach(([method, schema]) => {
@@ -78,8 +93,8 @@ module.exports = async(config = {}, errors, issuers) => {
             const successCodes = Object.keys(responses).map(x => +x).filter(code => code >= 200 && code < 300);
             if (successCodes.length !== 1) throw new Error('Exactly one successful HTTP status code must be defined');
             const [namespace] = operationId.split('.');
-            if (!routes[namespace]) routes[namespace] = [];
-            routes[namespace].push({
+            if (!swaggerRoutes[namespace]) swaggerRoutes[namespace] = [];
+            swaggerRoutes[namespace].push({
                 method,
                 path: getRoutePath(path),
                 operationId,
@@ -88,12 +103,15 @@ module.exports = async(config = {}, errors, issuers) => {
         });
     });
 
+    const uiRoutes = config.ui && require('./ui')({service: config.service, ...config.ui, documents, issuers}).routes;
+    if (uiRoutes) uiRoutes.forEach(route => register('utApi', route));
+
     return {
         apiCss: path.join(__dirname, 'docs', 'api.css'),
         apiList: require('./api'),
-        uiRoutes: config.ui && require('./ui')({service: config.service, ...config.ui, documents, issuers}).routes,
-        rpcRoutes: function rpcRoutesApi(definitions) {
-            return definitions.map(({
+        uiRoutes,
+        rpcRoutes(definitions, moduleName) {
+            const result = definitions.map(({
                 method,
                 description,
                 notes,
@@ -134,37 +152,38 @@ module.exports = async(config = {}, errors, issuers) => {
                 const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
                 const namespace = method.split('.')[0];
                 if (!documents[namespace]) documents[namespace] = emptyDoc(namespace, version);
+                if (moduleName && !moduleDoc[moduleName]) moduleDoc[moduleName] = [];
                 const document = documents[namespace];
-                document.paths[path] = {
-                    [httpMethod.toLowerCase()]: {
-                        tags: ['rpc/' + method.split('.')[0]],
-                        summary: description,
-                        description: [].concat(notes).join('\n'),
-                        operationId: method,
-                        parameters: [bodySchema && {
-                            name: 'body',
-                            in: 'body',
-                            description: 'body',
-                            required: true,
-                            schema: bodySchema
-                        }].filter(Boolean),
-                        responses: {
-                            default: {
-                                description: 'Invalid request',
-                                schema: {}
-                            },
-                            200: {
-                                description: 'Successful response',
-                                schema: !resultSchema ? {
-                                    type: 'object'
-                                } : {
-                                    type: 'object',
-                                    additionalProperties: false,
-                                    required: ['id', 'jsonrpc', 'method'],
-                                    properties: {
-                                        ...rpcProps(method),
-                                        ...resultSchema && {result: resultSchema}
-                                    }
+                if (!document.paths[path]) document.paths[path] = {};
+                if (moduleName) moduleDoc[moduleName].push([httpMethod.toLowerCase(), path, document.paths]);
+                document.paths[path][httpMethod.toLowerCase()] = {
+                    tags: ['rpc/' + method.split('.')[0]],
+                    summary: description,
+                    description: [].concat(notes).join('\n'),
+                    operationId: method,
+                    parameters: [bodySchema && {
+                        name: 'body',
+                        in: 'body',
+                        description: 'body',
+                        required: true,
+                        schema: bodySchema
+                    }].filter(Boolean),
+                    responses: {
+                        default: {
+                            description: 'Invalid request',
+                            schema: {}
+                        },
+                        200: {
+                            description: 'Successful response',
+                            schema: !resultSchema ? {
+                                type: 'object'
+                            } : {
+                                type: 'object',
+                                additionalProperties: false,
+                                required: ['id', 'jsonrpc', 'method'],
+                                properties: {
+                                    ...rpcProps(method),
+                                    ...resultSchema && {result: resultSchema}
                                 }
                             }
                         }
@@ -190,10 +209,12 @@ module.exports = async(config = {}, errors, issuers) => {
                     }
                 };
             });
+            if (moduleName) result.forEach(route => register(moduleName, route));
+            return result;
         },
-        restRoutes: function restRoutesApi({namespace, fn, object}) {
-            if (!routes[namespace]) return [];
-            return routes[namespace].map(({
+        restRoutes({namespace, fn, object}) {
+            if (!swaggerRoutes[namespace]) return [];
+            const result = swaggerRoutes[namespace].map(({
                 method,
                 path,
                 operationId,
@@ -271,6 +292,24 @@ module.exports = async(config = {}, errors, issuers) => {
                     }
                 };
             });
+            result.forEach(route => register(namespace, route));
+            return result;
+        },
+        route(routes) {
+            [].concat(routes).forEach(route => register('utApi', route));
+        },
+        deleteRoute({namespace, method, path}) {
+            unregister(namespace, method, path);
+            if (Array.isArray(moduleDoc[namespace])) {
+                moduleDoc[namespace].forEach(([key, path, paths]) => {
+                    delete paths[path][key];
+                    if (!Object.keys(paths[path]).length) delete paths[path];
+                });
+                delete moduleDoc[namespace];
+            }
+        },
+        routes() {
+            return [].concat(...Object.values(routesMap).map(routes => Object.values(routes)));
         }
     };
 };
