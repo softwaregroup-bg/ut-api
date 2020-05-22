@@ -295,8 +295,8 @@ module.exports = async(config = {}, errors, issuers) => {
             result.forEach(route => register(namespace, route));
             return result;
         },
-        route(routes) {
-            [].concat(routes).forEach(route => register('utApi', route));
+        route(routes, moduleName = 'utApi') {
+            [].concat(routes).forEach(route => register(moduleName, route));
         },
         deleteRoute({namespace, method, path}) {
             unregister(namespace, method, path);
