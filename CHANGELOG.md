@@ -1,3 +1,12 @@
+## [7.9.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.9.0...v7.9.1) (2020-05-22)
+
+
+### Bug Fixes
+
+* include swagger ui ([56a997c](https://github.com/softwaregroup-bg/ut-api/commit/56a997cb231bd4924cd4fabc34c8a9a79dd68cc0))
+
+
+
 # [7.9.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.8.1...v7.9.0) (2020-05-22)
 
 
