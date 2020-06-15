@@ -1,3 +1,12 @@
+## [7.9.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.9.1...v7.9.2) (2020-06-15)
+
+
+### Bug Fixes
+
+* internal api ([b33fdb4](https://github.com/softwaregroup-bg/ut-api/commit/b33fdb43186e7fd50fcf189963670a433728292a))
+
+
+
 ## [7.9.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.9.0...v7.9.1) (2020-05-22)
 
 
