@@ -6,7 +6,7 @@ const swagger = require('./swagger');
 const path = require('path');
 const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 
-module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, services, issuers}) => {
+module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
     let security;
     return {
         routes: [{
@@ -14,11 +14,11 @@ module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' 
             path: `${base}/{namespace}/swagger.json`,
             options: {
                 auth: false,
-                handler: async(request, h) => {
-                    const document = apidoc(request.params.namespace);
+                handler: async({params, headers}, h) => {
+                    const document = apidoc(params.namespace);
 
                     if (issuers && !security) {
-                        const oidc = await issuers();
+                        const oidc = await issuers(headers);
                         security = oidc && oidc.length && {
                             security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
                             securityDefinitions: oidc.reduce((prev, cur) => ({
@@ -42,23 +42,23 @@ module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' 
                     }
                 }
             }
-        }, services && {
+        }, internal && {
             method: 'GET',
             path: `${base}/internal/`,
             options: {auth: false},
             handler: async(request, h) =>
-                apiList((await services()).reduce((prev, service) => ({
+                apiList((await internal()).reduce((prev, service) => [
                     ...prev,
-                    [service.namespace]: {
+                    [service.namespace, {
                         host: service.host && (service.host + (service.port ? ':' + service.port : '')),
                         info: {
                             title: service.namespace,
                             description: 'Internal microservice API',
                             version: service.version
                         }
-                    }
-                }), {}))
-        }, proxy && {
+                    }]
+                ], []))
+        }, internal && {
             method: 'GET',
             path: `${base}/internal/{serviceHost}:{servicePort}/{doc*}`,
             options: {auth: false},

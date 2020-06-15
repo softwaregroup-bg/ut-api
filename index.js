@@ -49,7 +49,7 @@ const rpcProps = method => ({
     }
 });
 
-module.exports = async(config = {}, errors, issuers) => {
+module.exports = async(config = {}, errors, issuers, internal) => {
     const swaggerRoutes = {};
 
     let rest;
@@ -130,7 +130,7 @@ module.exports = async(config = {}, errors, issuers) => {
         }
     };
 
-    const uiRoutes = require('./ui')({service: config.service, ...config.ui, apidoc, issuers}).routes;
+    const uiRoutes = require('./ui')({service: config.service, ...config.ui, apidoc, issuers, internal}).routes;
     if (uiRoutes) uiRoutes.forEach(route => register(routesMap, 'utApi', route.method, route.path, route));
 
     return {
