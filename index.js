@@ -161,7 +161,9 @@ module.exports = async(config = {}, errors, issuers, internal) => {
             }) => {
                 if (!description) description = method;
                 if (!notes) notes = method;
-                const bodySchema = (validate && validate.payload && convertJoi(validate.payload)) ||
+                const bodySchema =
+                    (validate && validate.payload && (validate.payload !== true) && convertJoi(validate.payload)) ||
+                    (app && app.payload && convertJoi(app.payload)) ||
                 {
                     type: 'object',
                     additionalProperties: false,
