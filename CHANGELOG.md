@@ -1,3 +1,12 @@
+# [7.10.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.9.2...v7.10.0) (2020-07-14)
+
+
+### Features
+
+* upload validation ([1eb69eb](https://github.com/softwaregroup-bg/ut-api/commit/1eb69eb645519df0e9dfc224dec14ed0999b522d))
+
+
+
 ## [7.9.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.9.1...v7.9.2) (2020-06-15)
 
 
