@@ -157,7 +157,8 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                 cors,
                 cache,
                 id,
-                security
+                security,
+                maxBytes
             }) => {
                 if (!description) description = method;
                 if (!notes) notes = method;
@@ -236,7 +237,8 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                         cors,
                         cache,
                         id,
-                        security
+                        security,
+                        maxBytes
                     }
                 };
             });
