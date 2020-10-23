@@ -7,18 +7,20 @@ const path = require('path');
 const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 
 module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
-    let security;
+    const securityByHost = {};
     return {
         routes: [{
             method: 'GET',
             path: `${base}/{namespace}/swagger.json`,
             options: {
                 auth: false,
-                handler: async({params, headers}, h) => {
+                handler: async({params, headers, url: {protocol}}, h) => {
                     const document = apidoc(params.namespace);
+                    const host = (headers['x-forwarded-proto'] || protocol) + '//' + (headers['x-forwarded-host'] || headers.host);
+                    let security = securityByHost[host];
 
                     if (issuers && !security) {
-                        const oidc = await issuers(headers);
+                        const oidc = await issuers(headers, protocol);
                         security = oidc && oidc.length && {
                             security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
                             securityDefinitions: oidc.reduce((prev, cur) => ({
@@ -33,6 +35,7 @@ module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' 
                                 }
                             }), {})
                         };
+                        securityByHost[host] = security;
                     }
 
                     if (document) {
