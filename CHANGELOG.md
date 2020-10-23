@@ -1,3 +1,12 @@
+## [7.10.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.10.0...v7.10.1) (2020-10-23)
+
+
+### Bug Fixes
+
+* cache by host, protocol and port ([690c9c2](https://github.com/softwaregroup-bg/ut-api/commit/690c9c27a91d6b2daecb47014fd7040ee4fea62b))
+
+
+
 # [7.10.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.9.2...v7.10.0) (2020-07-14)
 
 
