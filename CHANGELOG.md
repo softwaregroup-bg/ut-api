@@ -1,3 +1,12 @@
+# [7.11.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.10.1...v7.11.0) (2020-10-27)
+
+
+### Features
+
+* support multiple joi ([2bfe295](https://github.com/softwaregroup-bg/ut-api/commit/2bfe295c6341d0b721bd0ed974959ab9d63c077d))
+
+
+
 ## [7.10.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.10.0...v7.10.1) (2020-10-23)
 
 
