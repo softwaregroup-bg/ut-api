@@ -4,14 +4,15 @@
   "main": "index.js",
   "dependencies": {
     "@hapi/boom": "8.0.1",
-    "joi-to-json-schema": "5.1.0",
+    "ut-joi": "^1.4.1",
+    "sort-keys": "4.1.0",
     "swagger-parser": "6.0.5",
-    "swagger-ui-dist": "^3.25.4",
-    "ut-swagger2-validator": "^0.3.1"
+    "swagger-ui-dist": "^3.36.0",
+    "ut-swagger2-validator": "^0.3.4"
   },
   "devDependencies": {
     "tap": "^12.7.0",
-    "ut-tools": "^6.33.2"
+    "ut-tools": "^6.34.2"
   },
   "peerDependencies": {},
   "scripts": {

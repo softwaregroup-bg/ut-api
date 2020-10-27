@@ -1,21 +1,8 @@
 const path = require('path');
 const swaggerValidator = require('ut-swagger2-validator');
 const swaggerParser = require('swagger-parser');
-const joiToJsonSchema = require('joi-to-json-schema');
+const convertJoi = require('ut-joi').convert;
 const Boom = require('@hapi/boom');
-const convertJoi = joiSchema => joiToJsonSchema(joiSchema, (schema, j) => {
-    if (schema.type === 'array' && !schema.items) schema.items = {};
-
-    if (j._examples && j._examples.length > 0) {
-        schema.examples = j._examples;
-    }
-
-    if (j._examples && j._examples.length === 1) {
-        schema.example = j._examples[0];
-    }
-
-    return schema;
-});
 
 const emptyDoc = (namespace = 'custom', version = '0.0.1') => ({
     swagger: '2.0',
@@ -175,10 +162,10 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                             example: null,
                             nullable: true
                         },
-                        ...params && {params: params.isJoi ? convertJoi(params) : params}
+                        ...params && {params: (typeof params.describe === 'function') ? convertJoi(params) : params}
                     }
                 };
-                const resultSchema = (result && result.isJoi) ? convertJoi(result) : result;
+                const resultSchema = (result && (typeof result.describe === 'function')) ? convertJoi(result) : result;
                 const namespace = method.split('.')[0];
                 if (!documents[namespace]) {
                     documents[namespace] = {

@@ -5,6 +5,7 @@ const apiList = require('./api');
 const swagger = require('./swagger');
 const path = require('path');
 const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
+const sortKeys = require('sort-keys');
 
 module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
     const securityByHost = {};
@@ -39,7 +40,7 @@ module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' 
                     }
 
                     if (document) {
-                        return h.response({...security, ...document}).type('application/json');
+                        return h.response(JSON.stringify(sortKeys({...security, ...document}, {deep: true}), false, 2)).type('application/json');
                     } else {
                         return Boom.notFound();
                     }
