@@ -1,3 +1,12 @@
+## [7.11.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.11.1...v7.11.2) (2020-10-28)
+
+
+### Bug Fixes
+
+* update hapi ([87b5aee](https://github.com/softwaregroup-bg/ut-api/commit/87b5aee228033b67643431ea51d349f89c6dad30))
+
+
+
 ## [7.11.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.11.0...v7.11.1) (2020-10-27)
 
 
