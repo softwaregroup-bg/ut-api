@@ -1,3 +1,12 @@
+## [7.11.3](https://github.com/softwaregroup-bg/ut-api/compare/v7.11.2...v7.11.3) (2020-11-06)
+
+
+### Bug Fixes
+
+* rename to hostname ([e731a44](https://github.com/softwaregroup-bg/ut-api/commit/e731a440e76ea20b5c8ca3c5d0600cccbbd314b5))
+
+
+
 ## [7.11.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.11.1...v7.11.2) (2020-10-28)
 
 
