@@ -54,7 +54,7 @@ module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' 
                 apiList((await internal()).reduce((prev, service) => [
                     ...prev,
                     [service.namespace, {
-                        host: service.host && (service.host + (service.port ? ':' + service.port : '')),
+                        host: service.hostname && (service.hostname + (service.port ? ':' + service.port : '')),
                         info: {
                             title: service.namespace,
                             description: 'Internal microservice API',
