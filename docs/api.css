@@ -101,6 +101,7 @@ h1 {
     margin-bottom: 10px;
 }
 
+.apiWrap h1 span,
 .api .version {
     border-radius: 5px;
     padding: 1px 6px 0;

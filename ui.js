@@ -7,7 +7,7 @@ const path = require('path');
 const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 const sortKeys = require('sort-keys');
 
-module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
+module.exports = ({apidoc, service = 'server', version, base = '/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
     const securityByHost = {};
     return {
         routes: [{
@@ -61,7 +61,7 @@ module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' 
                             version: service.version
                         }
                     }]
-                ], []))
+                ], []), version)
         }, internal && {
             method: 'GET',
             path: `${base}/internal/{serviceHost}:{servicePort}/{doc*}`,
@@ -108,7 +108,7 @@ module.exports = ({apidoc, service = 'server', base = '/api', path = base + '/' 
             path: `${path}/`,
             options: {
                 auth: false,
-                handler: (request, h) => h.response(apiList(apidoc())).type('text/html')
+                handler: (request, h) => h.response(apiList(apidoc(), version)).type('text/html')
             }
         }, {
             method: 'GET',
