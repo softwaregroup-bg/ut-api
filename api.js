@@ -1,5 +1,5 @@
 const prefix = (host, namespace) => `${host ? './' + host : ''}${namespace ? '/api/' + namespace + '/' : ''}`;
-module.exports = documents => `
+module.exports = (documents, version) => `
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -11,7 +11,7 @@ module.exports = documents => `
     <body>
         <div id="api">
             <div class="apiWrap">
-                <h1>API Docs</h1>
+                <h1>API Docs <span>${version}</span></h1>
                 <div class="api">${documents.map(([namespace, {host, info: {title, description, version} = {}}]) => `
                     <div>
                         <div class="namespace">
