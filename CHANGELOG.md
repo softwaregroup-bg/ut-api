@@ -1,3 +1,12 @@
+## [7.11.4](https://github.com/softwaregroup-bg/ut-api/compare/v7.11.3...v7.11.4) (2020-11-20)
+
+
+### Bug Fixes
+
+* display impl version in api docs ([482741a](https://github.com/softwaregroup-bg/ut-api/commit/482741af61dfd7ace5f52625662699e7bcec5352))
+
+
+
 ## [7.11.3](https://github.com/softwaregroup-bg/ut-api/compare/v7.11.2...v7.11.3) (2020-11-06)
 
 
