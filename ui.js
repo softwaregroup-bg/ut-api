@@ -14,6 +14,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             method: 'GET',
             path: `${base}/{namespace}/swagger.json`,
             options: {
+                app: {logError: true},
                 auth: false,
                 handler: async({params, headers, url: {protocol}}, h) => {
                     const document = apidoc(params.namespace);
@@ -49,7 +50,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
         }, internal && {
             method: 'GET',
             path: `${base}/internal/`,
-            options: {auth: false},
+            options: {auth: false, app: {logError: true}},
             handler: async(request, h) =>
                 apiList((await internal()).reduce((prev, service) => [
                     ...prev,
@@ -65,7 +66,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
         }, internal && {
             method: 'GET',
             path: `${base}/internal/{serviceHost}:{servicePort}/{doc*}`,
-            options: {auth: false},
+            options: {auth: false, app: {logError: true}},
             handler: {
                 proxy: {
                     passThrough: true,
@@ -77,6 +78,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             path: base,
             options: {
                 auth: false,
+                app: {logError: true},
                 handler: (request, h) => h.redirect(path + '/')
             }
         }, {
@@ -84,6 +86,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             path: '/documentation',
             options: {
                 auth: false,
+                app: {logError: true},
                 handler: (request, h) => h.redirect(path + '/')
             }
         }, {
@@ -91,6 +94,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             path: base + '.json',
             options: {
                 auth: false,
+                app: {logError: true},
                 handler: (request, h) => h.response(apidoc()
                     .map(([namespace, {host, info: {title, description, version} = {}}]) => ({
                         namespace, title, description, version, host
@@ -101,6 +105,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             path: `${base}/{service}`,
             options: {
                 auth: false,
+                app: {logError: true},
                 handler: (request, h) => h.redirect(request.uri + '/')
             }
         }, {
@@ -108,17 +113,18 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             path: `${path}/`,
             options: {
                 auth: false,
+                app: {logError: true},
                 handler: (request, h) => h.response(apiList(apidoc(), version)).type('text/html')
             }
         }, {
             method: 'GET',
             path: `${base}/{service}/swagger.html`,
-            options: {auth: false},
+            options: {auth: false, app: {logError: true}},
             handler: (request, h) => h.response(swagger(initOAuth)).type('text/html')
         }, {
             method: 'GET',
             path: `${base}/{service}/{page*}`,
-            options: {auth: false},
+            options: {auth: false, app: {logError: true}},
             handler: {
                 directory: {
                     path: docsPath,
@@ -129,7 +135,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
         }, {
             method: 'GET',
             path: `${base}/{service}/ui/{page*}`,
-            options: {auth: false},
+            options: {auth: false, app: {logError: true}},
             handler: {
                 directory: {
                     path: uiDistPath,
@@ -139,7 +145,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
         }, {
             method: 'GET',
             path: '/oauth2-redirect.html',
-            options: {auth: false},
+            options: {auth: false, app: {logError: true}},
             handler: {
                 file: {
                     path: redirect,
