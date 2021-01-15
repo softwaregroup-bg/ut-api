@@ -1,3 +1,12 @@
+# [7.12.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.11.4...v7.12.0) (2021-01-15)
+
+
+### Features
+
+* enable error logging ([4b8f2d0](https://github.com/softwaregroup-bg/ut-api/commit/4b8f2d0f653a625f4632d8bb3bacdce85a076845))
+
+
+
 ## [7.11.4](https://github.com/softwaregroup-bg/ut-api/compare/v7.11.3...v7.11.4) (2020-11-20)
 
 
