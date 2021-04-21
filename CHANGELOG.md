@@ -1,3 +1,17 @@
+# [7.13.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.12.0...v7.13.0) (2021-04-21)
+
+
+### Bug Fixes
+
+* update swagger-parser ([44162cd](https://github.com/softwaregroup-bg/ut-api/commit/44162cdb1fbc37961c8fc08f03d69606e249234e))
+
+
+### Features
+
+* enable publishing of API docs ([afae145](https://github.com/softwaregroup-bg/ut-api/commit/afae145a8c2922a660ff64b9275933c933751fd6))
+
+
+
 # [7.12.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.11.4...v7.12.0) (2021-01-15)
 
 
