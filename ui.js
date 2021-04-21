@@ -22,7 +22,12 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
                     let security = securityByHost[host];
 
                     if (issuers && !security) {
-                        const oidc = await issuers(headers, protocol);
+                        let oidc = [];
+                        try {
+                            oidc = await issuers(headers, protocol);
+                        } catch {
+                            // generate doc without security details
+                        }
                         security = oidc && oidc.length && {
                             security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
                             securityDefinitions: oidc.reduce((prev, cur) => ({
@@ -123,6 +128,16 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             handler: (request, h) => h.response(swagger(initOAuth)).type('text/html')
         }, {
             method: 'GET',
+            path: `${base}/swagger/ui/{page*}`,
+            options: {auth: false, app: {logError: true}},
+            handler: {
+                directory: {
+                    path: uiDistPath,
+                    index: false
+                }
+            }
+        }, {
+            method: 'GET',
             path: `${base}/{service}/{page*}`,
             options: {auth: false, app: {logError: true}},
             handler: {
@@ -130,16 +145,6 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
                     path: docsPath,
                     index: true,
                     defaultExtension: 'html'
-                }
-            }
-        }, {
-            method: 'GET',
-            path: `${base}/{service}/ui/{page*}`,
-            options: {auth: false, app: {logError: true}},
-            handler: {
-                directory: {
-                    path: uiDistPath,
-                    index: false
                 }
             }
         }, {

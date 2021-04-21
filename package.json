@@ -6,8 +6,8 @@
     "@hapi/boom": "9.1.0",
     "ut-joi": "^1.4.2",
     "sort-keys": "4.1.0",
-    "swagger-parser": "6.0.5",
-    "swagger-ui-dist": "^3.36.0",
+    "swagger-parser": "10.0.2",
+    "swagger-ui-dist": "^3.47.1",
     "ut-swagger2-validator": "^0.3.4"
   },
   "devDependencies": {

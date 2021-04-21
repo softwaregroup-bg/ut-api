@@ -7,9 +7,9 @@ module.exports = oauth => `<!DOCTYPE html>
     <link
         href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700"
         rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="ui/swagger-ui.css">
-    <link rel="icon" type="image/png" href="ui/favicon-32x32.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="ui/favicon-16x16.png" sizes="16x16" />
+    <link rel="stylesheet" type="text/css" href="../swagger/ui/swagger-ui.css">
+    <link rel="icon" type="image/png" href="../swagger/ui/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="../swagger/ui/favicon-16x16.png" sizes="16x16" />
     <style>
         html {
             box-sizing: border-box;
@@ -69,8 +69,8 @@ module.exports = oauth => `<!DOCTYPE html>
         </defs>
     </svg>
     <div id="swagger-ui"></div>
-    <script src="ui/swagger-ui-bundle.js"> </script>
-    <script src="ui/swagger-ui-standalone-preset.js"> </script>
+    <script src="../swagger/ui/swagger-ui-bundle.js"> </script>
+    <script src="../swagger/ui/swagger-ui-standalone-preset.js"> </script>
     <script>
         window.onload = function () {
             function HideTopbarPlugin() {

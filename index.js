@@ -8,7 +8,7 @@ const emptyDoc = (namespace = 'custom', version = '0.0.1') => ({
     swagger: '2.0',
     info: {
         title: namespace,
-        description: 'Internal microservice API',
+        description: 'Public microservice API',
         version
     },
     paths: {}
@@ -54,7 +54,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
     await swaggerParser.validate(rest);
 
     const validator = await swaggerValidator(rest);
-    const documents = {rest: {doc: rest}};
+    const documents = config.document ? {rest: {doc: rest}} : {};
 
     const getRoutePath = path => [rest.basePath, path].filter(Boolean).join('');
 
