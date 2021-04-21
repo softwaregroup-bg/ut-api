@@ -1,6 +1,6 @@
 const path = require('path');
 const swaggerValidator = require('ut-swagger2-validator');
-const swaggerParser = require('swagger-parser');
+const swaggerParser = require('@apidevtools/swagger-parser');
 const convertJoi = require('ut-joi').convert;
 const Boom = require('@hapi/boom');
 
