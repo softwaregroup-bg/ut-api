@@ -8,7 +8,7 @@
     "sort-keys": "4.1.0",
     "@apidevtools/swagger-parser": "10.0.2",
     "swagger-ui-dist": "^3.47.1",
-    "ut-swagger2-validator": "^0.3.4"
+    "ut-swagger2-validator": "^0.4.1"
   },
   "devDependencies": {
     "tap": "^12.7.0",
