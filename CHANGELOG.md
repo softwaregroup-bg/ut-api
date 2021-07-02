@@ -1,3 +1,12 @@
+# [7.14.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.13.2...v7.14.0) (2021-07-02)
+
+
+### Features
+
+* enable turning off api docs [UTCORE-121] ([0dbf979](https://github.com/softwaregroup-bg/ut-api/commit/0dbf979d76b815c9709a3182c9b9a8bc7ebebed7))
+
+
+
 ## [7.13.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.13.1...v7.13.2) (2021-06-30)
 
 
