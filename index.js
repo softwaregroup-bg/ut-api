@@ -255,10 +255,21 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                 pathParameters: params
                             });
                             if (validation.length > 0) {
+                                const message = validation.reduce((errMessages, v) => {
+                                    const {errors, name} = v;
+                                    if (errors && Array.isArray(errors) && errors.length > 0) {
+                                        errMessages.push(...errors.map(err => err.instancePath
+                                            ? `${name}, ${err.instancePath} ${err.message}`
+                                            : `${name} ${err.message}`
+                                        ));
+                                    }
+                                    return errMessages;
+                                }, []).join(', ');
                                 throw Boom.boomify(errors['bus.requestValidation']({
                                     validation,
                                     params: {
-                                        method: operationId
+                                        method: operationId,
+                                        message
                                     }
                                 }), {
                                     statusCode: 400
