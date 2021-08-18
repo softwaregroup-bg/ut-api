@@ -265,7 +265,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                     }
                                     return errMessages;
                                 }, []).join(', ');
-                                throw Boom.boomify(errors['bus.requestValidation']({
+                                const error = Boom.boomify(errors['bus.requestValidation']({
                                     validation,
                                     params: {
                                         method: operationId,
@@ -274,6 +274,8 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                 }), {
                                     statusCode: 400
                                 });
+                                app.serviceBus.log.error(error);
+                                throw error;
                             }
 
                             const msg = {
@@ -302,15 +304,27 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                             }
                             const responseValidation = await validate.response({status: successCode, body});
                             if (responseValidation.length > 0) {
+                                const message = responseValidation.reduce((errMessages, v) => {
+                                    const {errors} = v;
+                                    if (errors && Array.isArray(errors) && errors.length > 0) {
+                                        errMessages.push(...errors.map(err => err.instancePath
+                                            ? `${err.instancePath} ${err.message}`
+                                            : `response ${err.message}`
+                                        ));
+                                    }
+                                    return errMessages;
+                                }, []).join(', ');
                                 const error = Boom.boomify(errors['bus.responseValidation']({
                                     validation: responseValidation,
                                     params: {
-                                        method: operationId
+                                        path: request.path,
+                                        message
                                     }
                                 }), {
                                     statusCode: 500
                                 });
                                 error.output.headers['x-envoy-decorator-operation'] = operationId;
+                                app.serviceBus.log.error(error);
                                 throw error;
                             }
                             return h
