@@ -1,3 +1,12 @@
+## [7.14.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.14.0...v7.14.1) (2021-08-19)
+
+
+### Bug Fixes
+
+* ALZ-3350: improve request validations when defining REST APIs ([#7](https://github.com/softwaregroup-bg/ut-api/issues/7)) ([e4c9367](https://github.com/softwaregroup-bg/ut-api/commit/e4c93679b22db7c8a5a249ddc5a37c0f6ace166c))
+
+
+
 # [7.14.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.13.2...v7.14.0) (2021-07-02)
 
 
