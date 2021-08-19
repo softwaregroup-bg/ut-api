@@ -274,6 +274,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                 }), {
                                     statusCode: 400
                                 });
+                                // eslint-disable-next-line no-undef
                                 app.serviceBus.log.error(error);
                                 throw error;
                             }
@@ -324,6 +325,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                     statusCode: 500
                                 });
                                 error.output.headers['x-envoy-decorator-operation'] = operationId;
+                                // eslint-disable-next-line no-undef
                                 app.serviceBus.log.error(error);
                                 throw error;
                             }
