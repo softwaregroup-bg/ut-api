@@ -285,6 +285,8 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                 ...query
                             };
 
+                            $meta.headers = headers;
+
                             let body, mtid;
                             try {
                                 [body, {mtid}] = await fn.call(object, msg, $meta);
