@@ -287,7 +287,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
 
                             $meta.httpRequest = {
                                 headers
-                            }
+                            };
 
                             let body, mtid;
                             try {
