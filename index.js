@@ -144,7 +144,8 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                 cors,
                 cache,
                 id,
-                security
+                security,
+                timeout
             }) => {
                 if (!description) description = method;
                 if (!notes) notes = method;
@@ -223,7 +224,8 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                         cors,
                         cache,
                         id,
-                        security
+                        security,
+                        timeout
                     }
                 };
             });
@@ -239,7 +241,6 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                 successCode
             }) => {
                 const validate = validator[operationId];
-                const $meta = {mtid: 'request', method: operationId};
                 return {
                     method,
                     path,
@@ -287,7 +288,15 @@ module.exports = async(config = {}, errors, issuers, internal) => {
 
                             let body, mtid;
                             try {
-                                [body, {mtid}] = await fn.call(object, msg, $meta);
+                                [body, {mtid}] = await fn.call(object, msg, {
+                                    mtid: 'request',
+                                    method: operationId,
+                                    httpRequest: {
+                                        url: request.url,
+                                        state: request.state,
+                                        headers
+                                    }
+                                });
                             } catch (e) {
                                 return h
                                     .response({
