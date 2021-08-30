@@ -1,3 +1,12 @@
+## [7.14.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.14.1...v7.14.2) (2021-08-30)
+
+
+### Bug Fixes
+
+* REST meta ([279f5a6](https://github.com/softwaregroup-bg/ut-api/commit/279f5a6e67c17067d726f5d626c6285975e9d623))
+
+
+
 ## [7.14.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.14.0...v7.14.1) (2021-08-19)
 
 
