@@ -1,5 +1,5 @@
 const path = require('path');
-const swaggerValidator = require('ut-swagger2-validator');
+const methodValidator = require('ut-swagger2-validator');
 const swaggerParser = require('@apidevtools/swagger-parser');
 const convertJoi = require('ut-joi').convert;
 const Boom = require('@hapi/boom');
@@ -8,7 +8,7 @@ const emptyDoc = (namespace = 'custom', version = '0.0.1') => ({
     swagger: '2.0',
     info: {
         title: namespace,
-        description: 'Public microservice API',
+        description: 'UT Microservice API',
         version
     },
     paths: {}
@@ -36,27 +36,61 @@ const rpcProps = method => ({
     }
 });
 
-module.exports = async(config = {}, errors, issuers, internal) => {
-    const swaggerRoutes = {};
-
-    let rest;
-    switch (typeof config.document) {
+async function registerOpenApiAsync(document, swaggerRoutes) {
+    let result;
+    switch (typeof document) {
         case 'function':
-            rest = config.document();
+            result = document();
             break;
         case 'string':
-            rest = await swaggerParser.bundle(config.document);
+            result = await swaggerParser.bundle(document);
             break;
         default:
-            rest = config.document || emptyDoc();
+            result = document || emptyDoc();
     }
 
-    await swaggerParser.validate(rest);
+    await swaggerParser.validate(result);
+    const dereferenced = await swaggerParser.dereference(result);
+    const getRoutePath = path => [result.basePath, path].filter(Boolean).join('');
 
-    const validator = await swaggerValidator(rest);
-    const documents = config.document ? {rest: {doc: rest}} : {};
+    Object.entries(result.paths).forEach(([path, methods]) => !path.startsWith('x-') &&
+        Object.entries(methods).forEach(([method, schema]) => {
+            if (method.startsWith('x-')) return;
+            const {operationId, responses} = schema;
+            if (!operationId) throw new Error('operationId must be defined');
+            const successCodes = Object.keys(responses).map(x => +x).filter(code => code >= 200 && code < 300);
+            if (successCodes.length !== 1) throw new Error('Exactly one successful HTTP status code must be defined');
+            const [namespace] = operationId.split('.');
+            if (!swaggerRoutes[namespace]) swaggerRoutes[namespace] = [];
+            swaggerRoutes[namespace].push({
+                document: dereferenced,
+                method,
+                path: getRoutePath(path),
+                operationId,
+                successCode: successCodes[0],
+                errorTransform: schema['x-ut-errorTransform'] || methods['x-ut-errorTransform'] || result.paths['x-ut-errorTransform']
+            });
+        })
+    );
+    return result;
+}
 
-    const getRoutePath = path => [rest.basePath, path].filter(Boolean).join('');
+module.exports = async(config = {}, errors, issuers, internal) => {
+    const swaggerRoutes = {};
+    const pending = [];
+    const documents = {};
+
+    function registerOpenApi(map) {
+        Object.entries(map).forEach(([name, document]) => {
+            const doc = registerOpenApiAsync(document, swaggerRoutes);
+            if (!documents[name]) documents[name] = {};
+            documents[name].doc = doc;
+            pending.push(doc);
+            return doc;
+        });
+    }
+
+    if (config.document) registerOpenApi({rest: config.document});
 
     const routesMap = new Map();
 
@@ -78,28 +112,13 @@ module.exports = async(config = {}, errors, issuers, internal) => {
         }
     }
 
-    Object.entries(rest.paths).forEach(([path, methods]) => {
-        Object.entries(methods).forEach(([method, schema]) => {
-            const {operationId, responses} = schema;
-            if (!operationId) throw new Error('operationId must be defined');
-            const successCodes = Object.keys(responses).map(x => +x).filter(code => code >= 200 && code < 300);
-            if (successCodes.length !== 1) throw new Error('Exactly one successful HTTP status code must be defined');
-            const [namespace] = operationId.split('.');
-            if (!swaggerRoutes[namespace]) swaggerRoutes[namespace] = [];
-            swaggerRoutes[namespace].push({
-                method,
-                path: getRoutePath(path),
-                operationId,
-                successCode: successCodes[0]
-            });
-        });
-    });
-
-    function apidoc(namespace) {
+    async function apidoc(namespace) {
+        await Promise.all(pending);
         if (namespace) {
-            const {doc, map} = documents[namespace] || {};
-            const paths = {};
+            const {doc, map} = documents[namespace] || {paths: {}};
+            const result = await doc;
             if (map) {
+                const paths = result.paths;
                 for (const mod of map.values()) {
                     Object.entries(mod).forEach(([name, value]) => {
                         const [method, path] = name.split(' ', 2);
@@ -108,12 +127,9 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                     });
                 }
             }
-            return {
-                ...doc,
-                paths
-            };
+            return result;
         } else {
-            return Object.entries(documents).map(([name, value]) => [name, value.doc]);
+            return Promise.all(Object.entries(documents).map(async([name, value]) => [name, await value.doc]));
         }
     };
 
@@ -124,6 +140,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
         apiCss: path.join(__dirname, 'docs', 'api.css'),
         apiList: require('./api'),
         uiRoutes,
+        registerOpenApi,
         rpcRoutes(definitions, moduleName) {
             const result = definitions.map(({
                 method,
@@ -210,7 +227,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                 });
                 return {
                     method: httpMethod,
-                    path: getRoutePath(path),
+                    path,
                     options: {
                         auth,
                         description,
@@ -232,15 +249,37 @@ module.exports = async(config = {}, errors, issuers, internal) => {
             if (moduleName) result.forEach(route => register(routesMap, moduleName, route.method, route.path, route));
             return result;
         },
-        restRoutes({namespace, fn, object}) {
+        async restRoutes({namespace, fn, object, logger, debug}) {
+            await Promise.all(pending);
             if (!swaggerRoutes[namespace]) return [];
             const result = swaggerRoutes[namespace].map(({
+                document,
                 method,
                 path,
                 operationId,
-                successCode
+                successCode,
+                errorTransform
             }) => {
-                const validate = validator[operationId];
+                const validate = methodValidator(document, path, method);
+                const transform = async(error, statusCode) => {
+                    let result;
+                    if (errorTransform) {
+                        const [payload] = await fn.call(object, {...error}, {mtid: 'request', method: errorTransform});
+                        result = Boom.boomify(error, {statusCode: statusCode || 500});
+                        result.output.payload = payload;
+                    } else {
+                        const payload = debug ? {
+                            ...error
+                        } : {
+                            message: error.message,
+                            type: error.type
+                        };
+                        result = Boom.boomify(error, {statusCode: statusCode || 500});
+                        Object.assign(result.output.payload, payload);
+                    }
+                    result.output.headers['x-envoy-decorator-operation'] = operationId;
+                    return result;
+                };
                 return {
                     method,
                     path,
@@ -266,18 +305,15 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                     }
                                     return errMessages;
                                 }, []).join(', ');
-                                const error = Boom.boomify(errors['bus.requestValidation']({
+                                const error = errors['bus.requestValidation']({
                                     validation,
                                     params: {
                                         method: operationId,
                                         message
                                     }
-                                }), {
-                                    statusCode: 400
                                 });
-                                // eslint-disable-next-line no-undef
-                                app.serviceBus.log.error(error);
-                                throw error;
+                                logger?.error?.(error);
+                                throw await transform(error, 400);
                             }
 
                             const msg = {
@@ -298,19 +334,10 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                     }
                                 });
                             } catch (e) {
-                                return h
-                                    .response({
-                                        type: e.type,
-                                        message: e.message,
-                                        ...e
-                                    })
-                                    .header('x-envoy-decorator-operation', operationId)
-                                    .code(e.statusCode || 500);
+                                throw await transform(e);
                             }
                             if (mtid === 'error') {
-                                const error = Boom.boomify(body instanceof Error ? body : {}, {statusCode: (body && body.statusCode) || 500});
-                                error.output.headers['x-envoy-decorator-operation'] = operationId;
-                                throw error;
+                                throw await transform(body instanceof Error ? body : {}, body?.statusCode);
                             }
                             const responseValidation = await validate.response({status: successCode, body});
                             if (responseValidation.length > 0) {
@@ -324,19 +351,15 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                     }
                                     return errMessages;
                                 }, []).join(', ');
-                                const error = Boom.boomify(errors['bus.responseValidation']({
+                                const validationError = errors['bus.responseValidation']({
                                     validation: responseValidation,
                                     params: {
                                         path: request.path,
                                         message
                                     }
-                                }), {
-                                    statusCode: 500
                                 });
-                                error.output.headers['x-envoy-decorator-operation'] = operationId;
-                                // eslint-disable-next-line no-undef
-                                app.serviceBus.log.error(error);
-                                throw error;
+                                logger?.error?.(validationError);
+                                throw await transform(validationError);
                             }
                             return h
                                 .response(body)

@@ -17,7 +17,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
                 app: {logError: true},
                 auth: false,
                 handler: async({params, headers, url: {protocol}}, h) => {
-                    const document = apidoc(params.namespace);
+                    const document = await apidoc(params.namespace);
                     const host = (headers['x-forwarded-proto'] || protocol) + '//' + (headers['x-forwarded-host'] || headers.host);
                     let security = securityByHost[host];
 
@@ -100,7 +100,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             options: {
                 auth: false,
                 app: {logError: true},
-                handler: (request, h) => h.response(apidoc()
+                handler: async(request, h) => h.response((await apidoc())
                     .map(([namespace, {host, info: {title, description, version} = {}}]) => ({
                         namespace, title, description, version, host
                     }))).type('application/json')
@@ -119,7 +119,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             options: {
                 auth: false,
                 app: {logError: true},
-                handler: (request, h) => h.response(apiList(apidoc(), version)).type('text/html')
+                handler: async(request, h) => h.response(apiList(await apidoc(), version)).type('text/html')
             }
         }, {
             method: 'GET',
