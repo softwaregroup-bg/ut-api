@@ -1,3 +1,12 @@
+# [7.15.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.14.2...v7.15.0) (2021-09-02)
+
+
+### Features
+
+* improve openapi support ([0720dea](https://github.com/softwaregroup-bg/ut-api/commit/0720dea5cd7a87e86db3c68225e0c5b862b59e66))
+
+
+
 ## [7.14.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.14.1...v7.14.2) (2021-08-30)
 
 
