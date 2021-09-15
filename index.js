@@ -282,7 +282,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                 };
                 return {
                     method,
-                    path,
+                    path: path && path.split('?')[0],
                     options: {
                         auth: false,
                         handler: async(request, h) => {
