@@ -1,3 +1,12 @@
+## [7.15.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.15.0...v7.15.1) (2021-09-15)
+
+
+### Bug Fixes
+
+* extract pathname #UTCORE-121 ([b1679c5](https://github.com/softwaregroup-bg/ut-api/commit/b1679c541ad6431e09b5a8ec865b1f79aaa6e14c)), closes [#UTCORE-121](https://github.com/softwaregroup-bg/ut-api/issues/UTCORE-121)
+
+
+
 # [7.15.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.14.2...v7.15.0) (2021-09-02)
 
 
