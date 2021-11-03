@@ -1,3 +1,12 @@
+# [7.16.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.15.1...v7.16.0) (2021-11-03)
+
+
+### Features
+
+* handle securityDefinitions ([c064a01](https://github.com/softwaregroup-bg/ut-api/commit/c064a0124101d98727a1e05524f76da179c47302))
+
+
+
 ## [7.15.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.15.0...v7.15.1) (2021-09-15)
 
 
