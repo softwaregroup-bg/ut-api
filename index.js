@@ -36,7 +36,11 @@ const rpcProps = method => ({
     }
 });
 
-async function registerOpenApiAsync(document, swaggerRoutes) {
+async function registerOpenApiAsync(
+    document,
+    swaggerRoutes,
+    errors
+) {
     let result;
     switch (typeof document) {
         case 'function':
@@ -51,6 +55,10 @@ async function registerOpenApiAsync(document, swaggerRoutes) {
 
     await swaggerParser.validate(result);
     const dereferenced = await swaggerParser.dereference(result);
+    if (!dereferenced?.securityDefinitions ||
+        !Object.keys(dereferenced.securityDefinitions).length) {
+            throw errors['bus.authorizationSchemeRequired']();
+        }
     const getRoutePath = path => [result.basePath, path].filter(Boolean).join('');
 
     Object.entries(result.paths).forEach(([path, methods]) => !path.startsWith('x-') &&
@@ -65,6 +73,7 @@ async function registerOpenApiAsync(document, swaggerRoutes) {
             swaggerRoutes[namespace].push({
                 document: dereferenced,
                 method,
+                schema,
                 path: getRoutePath(path),
                 operationId,
                 successCode: successCodes[0],
@@ -75,6 +84,25 @@ async function registerOpenApiAsync(document, swaggerRoutes) {
     return result;
 }
 
+const authStrategy = (security, securityDefinitions) => {
+    if (!security) {
+        return false;
+    }
+    return {
+        mode: 'required',
+        strategies: security
+            .map((v) => {
+                const sec = Object.keys(v).pop();
+                return [
+                    sec,
+                    securityDefinitions[sec].type
+                ]
+                    .join('.')
+                    .toLowerCase()
+            })
+    };
+};
+
 module.exports = async(config = {}, errors, issuers, internal) => {
     const swaggerRoutes = {};
     const pending = [];
@@ -82,7 +110,11 @@ module.exports = async(config = {}, errors, issuers, internal) => {
 
     function registerOpenApi(map) {
         Object.entries(map).forEach(([name, document]) => {
-            const doc = registerOpenApiAsync(document, swaggerRoutes);
+            const doc = registerOpenApiAsync(
+                document,
+                swaggerRoutes,
+                errors
+            );
             if (!documents[name]) documents[name] = {};
             documents[name].doc = doc;
             pending.push(doc);
@@ -256,6 +288,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                 document,
                 method,
                 path,
+                schema,
                 operationId,
                 successCode,
                 errorTransform
@@ -284,7 +317,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                     method,
                     path: path && path.split('?')[0],
                     options: {
-                        auth: false,
+                        auth: authStrategy(schema.security, document.securityDefinitions),
                         handler: async(request, h) => {
                             const {params, query, payload, headers} = request;
 
