@@ -57,8 +57,8 @@ async function registerOpenApiAsync(
     const dereferenced = await swaggerParser.dereference(result);
     if (!dereferenced?.securityDefinitions ||
         !Object.keys(dereferenced.securityDefinitions).length) {
-            throw errors['bus.authorizationSchemeRequired']();
-        }
+        throw errors['bus.authorizationSchemeRequired']();
+    }
     const getRoutePath = path => [result.basePath, path].filter(Boolean).join('');
 
     Object.entries(result.paths).forEach(([path, methods]) => !path.startsWith('x-') &&
@@ -98,7 +98,7 @@ const authStrategy = (security, securityDefinitions) => {
                     securityDefinitions[sec].type
                 ]
                     .join('.')
-                    .toLowerCase()
+                    .toLowerCase();
             })
     };
 };
