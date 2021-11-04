@@ -1,3 +1,12 @@
+## [7.16.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.16.0...v7.16.1) (2021-11-04)
+
+
+### Bug Fixes
+
+* support openapi securitySchemes ([f83fb9c](https://github.com/softwaregroup-bg/ut-api/commit/f83fb9c41b5ba26c65e47878505ef971e879be25))
+
+
+
 # [7.16.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.15.1...v7.16.0) (2021-11-03)
 
 
