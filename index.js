@@ -55,10 +55,8 @@ async function registerOpenApiAsync(
 
     await swaggerParser.validate(result);
     const dereferenced = await swaggerParser.dereference(result);
-    if (!dereferenced?.securityDefinitions ||
-        !Object.keys(dereferenced.securityDefinitions).length) {
-        throw errors['bus.authorizationSchemeRequired']();
-    }
+    if (dereferenced?.swagger && (!dereferenced?.securityDefinitions || !Object.keys(dereferenced.securityDefinitions).length)) throw errors['bus.securityDefinitions']();
+    if (dereferenced?.openapi && (!dereferenced?.components?.securitySchemes || !Object.keys(dereferenced.components.securitySchemes).length)) throw errors['bus.securitySchemes']();
     const getRoutePath = path => [result.basePath, path].filter(Boolean).join('');
 
     Object.entries(result.paths).forEach(([path, methods]) => !path.startsWith('x-') &&
@@ -84,22 +82,22 @@ async function registerOpenApiAsync(
     return result;
 }
 
-const authStrategy = (security, securityDefinitions) => {
-    if (!security) {
-        return false;
-    }
+const authStrategy = (securityItems, {securityDefinitions = {}, swagger, openapi, components: {securitySchemes = {}} = {}}) => {
+    if (!securityItems) return false;
+    const mapper = {
+        2: security => [
+            'swagger',
+            securityDefinitions[Object.keys(security)[0]].type
+        ].join('.'),
+        3: security => [
+            'openapi',
+            securitySchemes[Object.keys(security)[0]].type,
+            securitySchemes[Object.keys(security)[0]].scheme
+        ].filter(Boolean).join('.')
+    }[(swagger || openapi).split('.')[0]];
     return {
         mode: 'required',
-        strategies: security
-            .map((v) => {
-                const sec = Object.keys(v).pop();
-                return [
-                    sec,
-                    securityDefinitions[sec].type
-                ]
-                    .join('.')
-                    .toLowerCase();
-            })
+        strategies: Array.from(new Set(securityItems.map(mapper)))
     };
 };
 
@@ -317,7 +315,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                     method,
                     path: path && path.split('?')[0],
                     options: {
-                        auth: authStrategy(schema.security, document.securityDefinitions),
+                        auth: authStrategy(schema.security || document.security, document),
                         handler: async(request, h) => {
                             const {params, query, payload, headers} = request;
 
