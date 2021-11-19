@@ -317,7 +317,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                     options: {
                         auth: authStrategy(schema.security || document.security, document),
                         handler: async(request, h) => {
-                            const {params, query, payload, headers} = request;
+                            const {params, query, payload, headers, auth} = request;
 
                             const validation = await validate.request({
                                 query,
@@ -358,6 +358,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                 [body, {mtid}] = await fn.call(object, msg, {
                                     mtid: 'request',
                                     method: operationId,
+                                    auth,
                                     httpRequest: {
                                         url: request.url,
                                         state: request.state,
