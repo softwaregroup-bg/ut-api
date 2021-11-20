@@ -1,3 +1,12 @@
+# [7.17.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.16.1...v7.17.0) (2021-11-20)
+
+
+### Features
+
+* pass auth object ([#10](https://github.com/softwaregroup-bg/ut-api/issues/10)) ([17e8e66](https://github.com/softwaregroup-bg/ut-api/commit/17e8e66d2d0f70edf6c4ccf65f04c65a78b0a25d))
+
+
+
 ## [7.16.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.16.0...v7.16.1) (2021-11-04)
 
 
