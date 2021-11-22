@@ -87,8 +87,9 @@ const authStrategy = (securityItems, {securityDefinitions = {}, swagger, openapi
     const mapper = {
         2: security => [
             'swagger',
-            securityDefinitions[Object.keys(security)[0]].type
-        ].join('.'),
+            securityDefinitions[Object.keys(security)[0]].type,
+            securityDefinitions[Object.keys(security)[0]]['x-scheme']
+        ].filter(Boolean).join('.'),
         3: security => [
             'openapi',
             securitySchemes[Object.keys(security)[0]].type,
@@ -311,10 +312,20 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                     result.output.headers['x-envoy-decorator-operation'] = operationId;
                     return result;
                 };
+                let options = {};
+                if (['get', 'head'].indexOf(method) === -1) {
+                    options = {
+                        payload: {
+                            output: 'data',
+                            parse: false
+                        }
+                    };
+                }
                 return {
                     method,
                     path: path && path.split('?')[0],
                     options: {
+                        ...options,
                         auth: authStrategy(schema.security || document.security, document),
                         handler: async(request, h) => {
                             const {params, query, payload, headers, auth} = request;
