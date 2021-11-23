@@ -321,7 +321,6 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                         auth: authStrategy(schema.security || document.security, document),
                         ...schema['x-options'],
                         handler: async(request, h) => {
-                            console.log(schema['x-options']);
                             const {
                                 params,
                                 query,
