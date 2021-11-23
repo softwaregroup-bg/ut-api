@@ -75,6 +75,7 @@ async function registerOpenApiAsync(
                 path: getRoutePath(path),
                 operationId,
                 successCode: successCodes[0],
+                bodyParse: schema['x-ut-bodyParse'] || methods['x-ut-bodyParse'],
                 errorTransform: schema['x-ut-errorTransform'] || methods['x-ut-errorTransform'] || result.paths['x-ut-errorTransform']
             });
         })
@@ -290,6 +291,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                 schema,
                 operationId,
                 successCode,
+                bodyParse,
                 errorTransform
             }) => {
                 const validate = methodValidator(document, path, method);
@@ -319,7 +321,31 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                         auth: authStrategy(schema.security || document.security, document),
                         ...schema['x-options'],
                         handler: async(request, h) => {
-                            const {params, query, payload, headers, auth} = request;
+                            const {
+                                params,
+                                query,
+                                headers,
+                                auth
+                            } = request;
+                            let payload = request.payload;
+
+                            if (bodyParse && request.app.rawPayload) {
+                                const [pl] = await fn.call(
+                                    object,
+                                    {rawPayload: request.app.rawPayload},
+                                    {
+                                        mtid: 'request',
+                                        method: bodyParse,
+                                        auth,
+                                        httpRequest: {
+                                            url: request.url,
+                                            state: request.state,
+                                            headers
+                                        }
+                                    }
+                                );
+                                payload = pl;
+                            }
 
                             const validation = await validate.request({
                                 query,
