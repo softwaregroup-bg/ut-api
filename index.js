@@ -321,18 +321,26 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                         auth: authStrategy(schema.security || document.security, document),
                         ...schema['x-options'],
                         handler: async(request, h) => {
+                            console.log(schema['x-options']);
                             const {
                                 params,
                                 query,
-                                headers,
-                                auth
+                                headers
                             } = request;
-                            let payload = request.payload;
 
-                            if (bodyParse && request.app.rawPayload) {
-                                const [pl] = await fn.call(
+                            let payload = request.payload;
+                            let auth = request.auth;
+
+                            if (bodyParse) {
+                                const [{payload: pl, auth: au}] = await fn.call(
                                     object,
-                                    {rawPayload: request.app.rawPayload},
+                                    {
+                                        path: request.path,
+                                        rawPayload: payload && payload.length && payload.toString('base64'),
+                                        params,
+                                        query,
+                                        headers
+                                    },
                                     {
                                         mtid: 'request',
                                         method: bodyParse,
@@ -345,6 +353,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                     }
                                 );
                                 payload = pl;
+                                auth = au;
                             }
 
                             const validation = await validate.request({
