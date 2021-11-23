@@ -317,7 +317,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                     path: path && path.split('?')[0],
                     options: {
                         auth: authStrategy(schema.security || document.security, document),
-                        ...(schema['x-options'] || {}),
+                        ...schema['x-options'],
                         handler: async(request, h) => {
                             const {params, query, payload, headers, auth} = request;
 
