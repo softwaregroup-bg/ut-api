@@ -1,3 +1,12 @@
+# [7.19.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.18.0...v7.19.0) (2021-11-24)
+
+
+### Features
+
+* UTCORE-152 ([#12](https://github.com/softwaregroup-bg/ut-api/issues/12)) ([2fe2d67](https://github.com/softwaregroup-bg/ut-api/commit/2fe2d67d4342c0235a3ff1e51d438107c83e78c5))
+
+
+
 # [7.18.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.17.0...v7.18.0) (2021-11-24)
 
 
