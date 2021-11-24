@@ -1,3 +1,12 @@
+# [7.18.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.17.0...v7.18.0) (2021-11-24)
+
+
+### Features
+
+* optional route options and receive handler ([#11](https://github.com/softwaregroup-bg/ut-api/issues/11)) ([12f8e87](https://github.com/softwaregroup-bg/ut-api/commit/12f8e878695a0910decf2ff747cffaa8f8a39653))
+
+
+
 # [7.17.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.16.1...v7.17.0) (2021-11-20)
 
 
