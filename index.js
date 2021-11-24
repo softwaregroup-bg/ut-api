@@ -330,6 +330,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                         return await fn.call(
                             object,
                             {
+                                path: request.path,
                                 params: request.params,
                                 query: request.query,
                                 payload: request.payload,
