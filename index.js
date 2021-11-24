@@ -75,6 +75,7 @@ async function registerOpenApiAsync(
                 path: getRoutePath(path),
                 operationId,
                 successCode: successCodes[0],
+                receive: schema['x-ut-receive'] || methods['x-ut-receive'] || result.paths['x-ut-receive'],
                 errorTransform: schema['x-ut-errorTransform'] || methods['x-ut-errorTransform'] || result.paths['x-ut-errorTransform']
             });
         })
@@ -83,12 +84,13 @@ async function registerOpenApiAsync(
 }
 
 const authStrategy = (securityItems, {securityDefinitions = {}, swagger, openapi, components: {securitySchemes = {}} = {}}) => {
-    if (!securityItems) return false;
+    if (!securityItems?.length) return false;
     const mapper = {
         2: security => [
             'swagger',
-            securityDefinitions[Object.keys(security)[0]].type
-        ].join('.'),
+            securityDefinitions[Object.keys(security)[0]].type,
+            securityDefinitions[Object.keys(security)[0]]['x-scheme']
+        ].filter(Boolean).join('.'),
         3: security => [
             'openapi',
             securitySchemes[Object.keys(security)[0]].type,
@@ -101,7 +103,7 @@ const authStrategy = (securityItems, {securityDefinitions = {}, swagger, openapi
     };
 };
 
-module.exports = async(config = {}, errors, issuers, internal) => {
+module.exports = async(config = {}, errors, issuers, internal, forward = () => undefined) => {
     const swaggerRoutes = {};
     const pending = [];
     const documents = {};
@@ -289,13 +291,24 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                 schema,
                 operationId,
                 successCode,
+                receive,
                 errorTransform
             }) => {
                 const validate = methodValidator(document, path, method);
-                const transform = async(error, statusCode) => {
+                const transform = async(request, error, statusCode) => {
                     let result;
                     if (errorTransform) {
-                        const [payload] = await fn.call(object, {...error}, {mtid: 'request', method: errorTransform});
+                        const [payload] = await fn.call(
+                            object,
+                            {...error},
+                            {
+                                mtid: 'request',
+                                method: errorTransform,
+                                opcode: operationId,
+                                forward: forward(request.headers),
+                                auth: request.auth
+                            }
+                        );
                         result = Boom.boomify(error, {statusCode: statusCode || 500});
                         result.output.payload = payload;
                     } else {
@@ -311,14 +324,39 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                     result.output.headers['x-envoy-decorator-operation'] = operationId;
                     return result;
                 };
+                const receiveRequest = async request => {
+                    if (!receive) return [request];
+                    try {
+                        return await fn.call(
+                            object,
+                            {
+                                params: request.params,
+                                query: request.query,
+                                payload: request.payload,
+                                headers: request.headers,
+                                auth: request.auth
+                            },
+                            {
+                                mtid: 'request',
+                                method: receive,
+                                opcode: operationId,
+                                forward: forward(request.headers),
+                                auth: request.auth
+                            }
+                        );
+                    } catch (error) {
+                        throw await transform(request, error, error.statusCode);
+                    }
+                };
+
                 return {
                     method,
                     path: path && path.split('?')[0],
                     options: {
                         auth: authStrategy(schema.security || document.security, document),
+                        ...schema['x-options'],
                         handler: async(request, h) => {
-                            const {params, query, payload, headers, auth} = request;
-
+                            const [{params, query, payload, headers, auth}] = await receiveRequest(request);
                             const validation = await validate.request({
                                 query,
                                 body: payload,
@@ -344,7 +382,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                     }
                                 });
                                 logger?.error?.(error);
-                                throw await transform(error, 400);
+                                throw await transform(request, error, 400);
                             }
 
                             const msg = {
@@ -359,17 +397,18 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                     mtid: 'request',
                                     method: operationId,
                                     auth,
+                                    forward: forward(headers),
                                     httpRequest: {
                                         url: request.url,
                                         state: request.state,
                                         headers
                                     }
                                 });
-                            } catch (e) {
-                                throw await transform(e);
+                            } catch (error) {
+                                throw await transform(request, error, error.statusCode);
                             }
                             if (mtid === 'error') {
-                                throw await transform(body instanceof Error ? body : {}, body?.statusCode);
+                                throw await transform(request, body instanceof Error ? body : {}, body?.statusCode);
                             }
                             const responseValidation = await validate.response({status: successCode, body});
                             if (responseValidation.length > 0) {
@@ -391,7 +430,7 @@ module.exports = async(config = {}, errors, issuers, internal) => {
                                     }
                                 });
                                 logger?.error?.(validationError);
-                                throw await transform(validationError);
+                                throw await transform(request, validationError);
                             }
                             return h
                                 .response(body)
