@@ -16,12 +16,7 @@ const emptyDoc = (namespace = 'custom', version = '0.0.1') => ({
 
 const rpcProps = method => ({
     id: {
-        schema: {
-            oneOf: [
-                {type: 'string'},
-                {type: 'number'}
-            ]
-        },
+        type: ['string', 'number'],
         example: '1'
     },
     jsonrpc: {
