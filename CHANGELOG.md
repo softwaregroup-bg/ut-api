@@ -1,3 +1,12 @@
+## [7.19.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.19.1...v7.19.2) (2022-01-17)
+
+
+### Bug Fixes
+
+* simplify schema ([118383d](https://github.com/softwaregroup-bg/ut-api/commit/118383d5ea8ddfe8092d50f469c6131d97ed3335))
+
+
+
 ## [7.19.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.19.0...v7.19.1) (2022-01-17)
 
 
