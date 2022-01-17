@@ -21,12 +21,12 @@ const rpcProps = method => ({
     },
     jsonrpc: {
         type: 'string',
-        enum: ['2.0'],
+        const: '2.0',
         example: '2.0'
     },
     method: {
         type: 'string',
-        enum: [method],
+        const: method,
         example: method
     }
 });
