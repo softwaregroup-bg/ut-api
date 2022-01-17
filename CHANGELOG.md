@@ -1,3 +1,7 @@
+## [7.19.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.19.0...v7.19.1) (2022-01-17)
+
+
+
 # [7.19.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.18.0...v7.19.0) (2021-11-24)
 
 
