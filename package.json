@@ -4,10 +4,10 @@
   "main": "index.js",
   "dependencies": {
     "@hapi/boom": "9.1.0",
-    "ut-joi": "^1.4.4",
+    "ut-joi": "^1.4.7",
     "sort-keys": "4.1.0",
     "@apidevtools/swagger-parser": "10.0.3",
-    "swagger-ui-dist": "^3.52.2",
+    "swagger-ui-dist": "^4.4.1",
     "ut-swagger2-validator": "^0.5.2"
   },
   "devDependencies": {
