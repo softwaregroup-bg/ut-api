@@ -103,7 +103,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
                 auth: false,
                 handler: (request, h) => {
                     const specs = apidoc();
-                    const spec = specs.find(([namespace]) => namespace === request.params.namespace)
+                    const spec = specs.find(([namespace]) => namespace === request.params.namespace);
                     return spec
                         ? spec[1].openapi
                             ? formatOpenApi(request, h)
