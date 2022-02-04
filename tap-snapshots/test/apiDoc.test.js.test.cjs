@@ -5,6 +5,106 @@
  * Make sure to inspect the output below.  Do not ignore changes!
  */
 'use strict'
+exports[`test/apiDoc.test.js TAP rpcRoutes > custom namespace swagger document 1`] = `
+Object {
+  "info": Object {
+    "description": "Parking services",
+    "title": "example",
+    "version": "1.0.0",
+  },
+  "paths": Object {
+    "/parking/pay": Object {
+      "post": Object {
+        "consumes": Array [
+          "application/json",
+        ],
+        "description": "Pay parking in a city zone",
+        "operationId": "example.parking.pay",
+        "parameters": Array [
+          Object {
+            "in": "body",
+            "name": "body",
+            "schema": Object {
+              "properties": Object {
+                "city": Object {
+                  "description": "City",
+                  "type": "string",
+                },
+                "zone": Object {
+                  "description": "Zone",
+                  "type": "string",
+                },
+              },
+              "required": Array [
+                "city",
+                "zone",
+              ],
+              "type": "object",
+            },
+          },
+        ],
+        "responses": Object {
+          "200": Object {
+            "description": "Payment details",
+            "schema": Object {
+              "properties": Object {
+                "details": Object {
+                  "properties": Object {
+                    "amount": Object {
+                      "type": "string",
+                    },
+                    "time": Object {
+                      "type": "string",
+                    },
+                  },
+                  "required": Array [
+                    "time",
+                    "amount",
+                  ],
+                  "type": "object",
+                },
+              },
+              "required": Array [
+                "details",
+              ],
+              "type": "object",
+            },
+          },
+        },
+        "security": Array [],
+        "summary": "Parking payment",
+        "tags": Array [
+          "parking",
+        ],
+        "x-options": Object {
+          "payload": Object {
+            "parse": false,
+          },
+        },
+        "x-ut-errorTransform": "example.error.transform",
+        "x-ut-receive": "example.request.receive",
+      },
+    },
+  },
+  "security": Array [
+    Object {
+      "jwt": Array [],
+    },
+  ],
+  "securityDefinitions": Object {
+    "basicAuth": Object {
+      "type": "basic",
+    },
+    "jwt": Object {
+      "in": "header",
+      "name": "authorization",
+      "type": "apiKey",
+    },
+  },
+  "swagger": "2.0",
+}
+`
+
 exports[`test/apiDoc.test.js TAP rpcRoutes > subject namespace openapi document 1`] = `
 Object {
   "components": Object {

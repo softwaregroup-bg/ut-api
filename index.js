@@ -4,20 +4,6 @@ const swaggerParser = require('@apidevtools/swagger-parser');
 const convertJoi = require('ut-joi').convert;
 const Boom = require('@hapi/boom');
 
-const emptyDoc = (namespace = 'custom', version = '0.0.1', standard = 'swagger') => ({
-    ...(standard === 'swagger') ? {
-        swagger: '2.0'
-    } : {
-        openapi: '3.0.0'
-    },
-    info: {
-        title: namespace,
-        description: 'UT Microservice API',
-        version
-    },
-    paths: {}
-});
-
 const rpcProps = method => ({
     id: {
         type: ['string', 'number'],
@@ -107,7 +93,7 @@ async function registerOpenApiAsync(
             result = await swaggerParser.bundle(document);
             break;
         default:
-            result = document || emptyDoc();
+            result = document;
     }
 
     await swaggerParser.validate(result);
@@ -162,24 +148,17 @@ const authStrategy = (securityItems, {securityDefinitions = {}, swagger, openapi
 
 module.exports = async(config = {}, errors, issuers, internal, forward = () => undefined) => {
     const swaggerRoutes = {};
-    const pending = [];
     const documents = {};
 
-    function registerOpenApi(map) {
-        Object.entries(map).forEach(([name, document]) => {
-            const doc = registerOpenApiAsync(
+    async function registerOpenApi(map) {
+        for (const [name, document] of Object.entries(map)) {
+            const doc = await registerOpenApiAsync(
                 document,
                 swaggerRoutes,
                 errors
             );
-            if (!documents[name]) documents[name] = {};
-            pending.push(async() => {
-                const result = await doc;
-                if (result.swagger) documents[name].swagger = result;
-                else if (result.openapi) documents[name].openapi = result;
-                else throw new Error('invalid document');
-            });
-        });
+            documents[name] = {doc};
+        }
     }
 
     if (config.document) registerOpenApi({rest: config.document});
@@ -204,24 +183,40 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
         }
     }
 
-    async function apidoc(namespace, standard = 'swagger') {
-        await Promise.all(pending.map(fn => fn()));
+    function apidoc(namespace, standard = 'swagger') {
         if (namespace) {
-            const {map, ...rest} = documents[namespace] || {paths: {}};
-            const result = await rest[standard];
+            const {map, info, doc} = documents[namespace] || {};
+            if (doc) return doc[standard] && doc;
             if (map) {
-                const paths = result.paths;
+                const result = {
+                    ...(standard === 'swagger') ? {
+                        swagger: '2.0'
+                    } : {
+                        openapi: '3.0.0'
+                    },
+                    info,
+                    paths: {}
+                };
                 for (const mod of map.values()) {
                     Object.entries(mod).forEach(([name, value]) => {
                         const [method, path] = name.split(' ', 2);
-                        if (!paths[path]) paths[path] = {};
-                        paths[path][method.toLowerCase()] = formatPath(standard, value);
+                        if (!result.paths[path]) result.paths[path] = {};
+                        result.paths[path][method.toLowerCase()] = formatPath(standard, value);
                     });
                 }
+                return result;
             }
-            return result;
         } else {
-            return Promise.all(Object.entries(documents).map(async([name, value]) => [name, await value[standard]]));
+            return Object.entries(documents).map(([name, {info, doc}]) => {
+                return [
+                    name,
+                    doc ? {
+                        info: doc.info,
+                        ...doc.swagger && {swagger: true},
+                        ...doc.openapi && {openapi: true}
+                    } : {info, swagger: true, openapi: true}
+                ];
+            });
         }
     };
 
@@ -279,8 +274,11 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 const namespace = method.split('.')[0];
                 if (!documents[namespace]) {
                     documents[namespace] = {
-                        swagger: emptyDoc(namespace, version, 'swagger'),
-                        openapi: emptyDoc(namespace, version, 'openapi'),
+                        info: {
+                            title: namespace,
+                            description: 'UT Microservice API',
+                            version
+                        },
                         map: new Map()
                     };
                 }
@@ -328,7 +326,6 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
             return result;
         },
         async restRoutes({namespace, fn, object, logger, debug}) {
-            await Promise.all(pending.map(fn => fn()));
             if (!swaggerRoutes[namespace]) return [];
             const result = swaggerRoutes[namespace].map(({
                 document,
