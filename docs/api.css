@@ -1,6 +1,11 @@
 body {
     background-color: #f3f3f3;
-    font-family: Arial,Sans-serif;
+    font: 100% system-ui;
+    color: #333;
+}
+
+a {
+    color: #0033cc;
 }
 
 h1 {
@@ -12,8 +17,6 @@ h1 {
 #api {
     display: flex;
     flex-wrap: wrap;
-    margin-right: -20px;
-    margin-left: -20px;
 }
 
 .apiWrap {
@@ -26,33 +29,31 @@ h1 {
 
 @media (min-width: 576px) {
     .apiWrap {
-        max-width:540px
+        max-width: 540px
     }
 }
 
 @media (min-width: 768px) {
     .apiWrap {
-        max-width:720px
+        max-width: 720px
     }
 }
 
 @media (min-width: 992px) {
     .apiWrap {
-        max-width:960px
+        max-width: 960px
     }
 }
 
 @media (min-width: 1200px) {
     .apiWrap {
-        max-width:1140px
+        max-width: 1140px
     }
 }
 
 .api {
     display: flex;
     flex-wrap: wrap;
-    margin-right: -20px;
-    margin-left: -20px;
 }
 
 .api>div {
@@ -70,7 +71,7 @@ h1 {
 
 @media (min-width: 768px) {
     .api>div {
-        flex:0 0 33.33333%;
+        flex: 0 0 33.33333%;
         max-width: 33.33333%;
     }
 }
@@ -116,4 +117,30 @@ h1 {
 
 .api .link a {
     text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        color: #eee;
+        background: #121212;
+    }
+
+    body a {
+        color: #809fff;
+    }
+
+    .namespace {
+        background-color: #333;
+        color: #eee;
+    }
+
+    .api .title {
+        color: aquamarine;
+    }
+
+    .apiWrap h1 span,
+    .api .version {
+        background-color: #222;
+    }
+
 }
