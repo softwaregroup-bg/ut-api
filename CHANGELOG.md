@@ -1,3 +1,12 @@
+# [7.20.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.19.4...v7.20.0) (2022-02-04)
+
+
+### Features
+
+* api dark mode ([476be6d](https://github.com/softwaregroup-bg/ut-api/commit/476be6d9ce6f6bbb6b4296e368dfa3e9ead1d4a4))
+
+
+
 ## [7.19.4](https://github.com/softwaregroup-bg/ut-api/compare/v7.19.3...v7.19.4) (2022-02-03)
 
 
