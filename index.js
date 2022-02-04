@@ -173,16 +173,12 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 errors
             );
             if (!documents[name]) documents[name] = {};
-            return pending.push(new Promise((resolve, reject) => {
-                return Promise.resolve(doc)
-                    .then(result => {
-                        if (result.swagger) documents[name].swagger = result;
-                        else if (result.openapi) documents[name].openapi = result;
-                        else throw new Error('invalid document');
-                        return resolve(result);
-                    })
-                    .catch(reject);
-            }));
+            pending.push(async() => {
+                const result = await doc;
+                if (result.swagger) documents[name].swagger = result;
+                else if (result.openapi) documents[name].openapi = result;
+                else throw new Error('invalid document');
+            });
         });
     }
 
@@ -209,7 +205,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
     }
 
     async function apidoc(namespace, standard = 'swagger') {
-        await Promise.all(pending);
+        await Promise.all(pending.map(fn => fn()));
         if (namespace) {
             const {map, ...rest} = documents[namespace] || {paths: {}};
             const result = await rest[standard];
@@ -332,7 +328,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
             return result;
         },
         async restRoutes({namespace, fn, object, logger, debug}) {
-            await Promise.all(pending);
+            await Promise.all(pending.map(fn => fn()));
             if (!swaggerRoutes[namespace]) return [];
             const result = swaggerRoutes[namespace].map(({
                 document,
