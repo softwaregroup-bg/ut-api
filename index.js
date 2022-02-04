@@ -4,8 +4,12 @@ const swaggerParser = require('@apidevtools/swagger-parser');
 const convertJoi = require('ut-joi').convert;
 const Boom = require('@hapi/boom');
 
-const emptyDoc = (namespace = 'custom', version = '0.0.1') => ({
-    swagger: '2.0',
+const emptyDoc = (namespace = 'custom', version = '0.0.1', standard = 'swagger') => ({
+    ...(standard === 'swagger') ? {
+        swagger: '2.0'
+    } : {
+        openapi: '3.0.0'
+    },
     info: {
         title: namespace,
         description: 'UT Microservice API',
@@ -28,6 +32,64 @@ const rpcProps = method => ({
         type: 'string',
         const: method,
         example: method
+    }
+});
+
+const formatPath = (standard, {
+    tags,
+    summary,
+    description,
+    operationId,
+    bodySchema,
+    resultSchema
+}) => ({
+    tags,
+    summary,
+    description,
+    operationId,
+    ...(standard === 'swagger') ? {
+        parameters: [bodySchema && {
+            name: 'body',
+            in: 'body',
+            description: 'body',
+            required: true,
+            schema: bodySchema
+        }].filter(Boolean),
+        produces: ['application/json'],
+        responses: {
+            default: {
+                description: 'Invalid request',
+                schema: {}
+            },
+            200: {
+                description: 'Successful response',
+                schema: resultSchema
+            }
+        }
+    } : { // openapi
+        ...bodySchema && {
+            requestBody: {
+                content: {
+                    'application/json': {
+                        schema: bodySchema
+                    }
+                }
+            }
+        },
+        responses: {
+            default: {
+                description: 'Invalid request',
+                content: {}
+            },
+            200: {
+                description: 'Successful response',
+                content: {
+                    'application/json': {
+                        schema: resultSchema
+                    }
+                }
+            }
+        }
     }
 });
 
@@ -111,9 +173,16 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 errors
             );
             if (!documents[name]) documents[name] = {};
-            documents[name].doc = doc;
-            pending.push(doc);
-            return doc;
+            return pending.push(new Promise((resolve, reject) => {
+                return Promise.resolve(doc)
+                    .then(result => {
+                        if (result.swagger) documents[name].swagger = result;
+                        else if (result.openapi) documents[name].openapi = result;
+                        else throw new Error('invalid document');
+                        return resolve(result);
+                    })
+                    .catch(reject);
+            }));
         });
     }
 
@@ -139,24 +208,24 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
         }
     }
 
-    async function apidoc(namespace) {
+    async function apidoc(namespace, standard = 'swagger') {
         await Promise.all(pending);
         if (namespace) {
-            const {doc, map} = documents[namespace] || {paths: {}};
-            const result = await doc;
+            const {map, ...rest} = documents[namespace] || {paths: {}};
+            const result = await rest[standard];
             if (map) {
                 const paths = result.paths;
                 for (const mod of map.values()) {
                     Object.entries(mod).forEach(([name, value]) => {
                         const [method, path] = name.split(' ', 2);
                         if (!paths[path]) paths[path] = {};
-                        paths[path][method.toLowerCase()] = value;
+                        paths[path][method.toLowerCase()] = formatPath(standard, value);
                     });
                 }
             }
             return result;
         } else {
-            return Promise.all(Object.entries(documents).map(async([name, value]) => [name, await value.doc]));
+            return Promise.all(Object.entries(documents).map(async([name, value]) => [name, await value[standard]]));
         }
     };
 
@@ -214,7 +283,8 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 const namespace = method.split('.')[0];
                 if (!documents[namespace]) {
                     documents[namespace] = {
-                        doc: emptyDoc(namespace, version),
+                        swagger: emptyDoc(namespace, version, 'swagger'),
+                        openapi: emptyDoc(namespace, version, 'openapi'),
                         map: new Map()
                     };
                 }
@@ -224,31 +294,16 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                     summary: description,
                     description: [].concat(notes).join('\n'),
                     operationId: method,
-                    parameters: [bodySchema && {
-                        name: 'body',
-                        in: 'body',
-                        description: 'body',
-                        required: true,
-                        schema: bodySchema
-                    }].filter(Boolean),
-                    responses: {
-                        default: {
-                            description: 'Invalid request',
-                            schema: {}
-                        },
-                        200: {
-                            description: 'Successful response',
-                            schema: !resultSchema ? {
-                                type: 'object'
-                            } : {
-                                type: 'object',
-                                additionalProperties: false,
-                                required: ['id', 'jsonrpc', 'method'],
-                                properties: {
-                                    ...rpcProps(method),
-                                    ...resultSchema && {result: resultSchema}
-                                }
-                            }
+                    bodySchema,
+                    resultSchema: !resultSchema ? {
+                        type: 'object'
+                    } : {
+                        type: 'object',
+                        additionalProperties: false,
+                        required: ['id', 'jsonrpc', 'method'],
+                        properties: {
+                            ...rpcProps(method),
+                            ...resultSchema && {result: resultSchema}
                         }
                     }
                 });

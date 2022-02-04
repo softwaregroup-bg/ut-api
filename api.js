@@ -24,6 +24,7 @@ module.exports = (documents, version) => `
                             <div class="description">API links</div>
                             <div class="link"><a href="${prefix(host, namespace)}swagger.json">Swagger</a></div>
                             <div class="link"><a href="${prefix(host, namespace)}swagger.html">Swagger UI</a></div>
+                            <div class="link"><a href="${prefix(host, namespace)}openapi.json">OpenAPI</a></div>
                             <div class="link"><a href="${prefix(host, namespace)}redoc.html">Redoc</a></div>
                         </div>
                     </div>`).join('\r\n')}
