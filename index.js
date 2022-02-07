@@ -151,7 +151,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
     const pending = [];
     const documents = {};
 
-    async function registerOpenApi(map) {
+    function registerOpenApi(map) {
         for (const [name, document] of Object.entries(map)) {
             const doc = registerOpenApiAsync(
                 document,
