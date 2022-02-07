@@ -213,8 +213,8 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 return result;
             }
         } else {
-            return Promise.all(Object.entries(documents).map(async([name, {info, swagger, openapi, doc}]) => {
-                if (info) return [name, {info, swagger, openapi}];
+            return Promise.all(Object.entries(documents).map(async([name, {info, doc}]) => {
+                if (info) return [name, {info, swagger: true, openapi: true}];
                 const content = await doc;
                 return [name, {info: content.info, swagger: !!content.swagger, openapi: !!content.openapi}];
             }));
@@ -275,8 +275,6 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 const namespace = method.split('.')[0];
                 if (!documents[namespace]) {
                     documents[namespace] = {
-                        swagger: true,
-                        openapi: true,
                         info: {
                             title: namespace,
                             description: 'UT Microservice API',
