@@ -8,48 +8,109 @@ const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 const sortKeys = require('sort-keys');
 
 module.exports = ({apidoc, service = 'server', version, base = '/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
-    const securityByHost = {};
+    const oidcByHost = {};
+    async function getOidc(headers, protocol) {
+        const host = (headers['x-forwarded-proto'] || protocol) + '//' + (headers['x-forwarded-host'] || headers.host);
+        if (issuers && !oidcByHost[host]) {
+            try {
+                oidcByHost[host] = await issuers(headers, protocol);
+            } catch (e) {
+                // generate doc without security details
+            }
+        }
+        return oidcByHost[host];
+    }
+    const formatOpenApi = async({params, headers, url: {protocol}}, h) => {
+        const document = await apidoc(params.namespace, 'openapi');
+        if (document) {
+            const oidc = await getOidc(headers, protocol);
+            if (oidc && oidc.length) {
+                return h.response(JSON.stringify(sortKeys({
+                    security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
+                    ...document,
+                    components: {
+                        securitySchemes: oidc.reduce((prev, cur) => ({
+                            ...prev,
+                            [cur.issuer]: {
+                                type: 'oauth2',
+                                flows: {
+                                    authorizationCode: {
+                                        authorizationUrl: cur.authorization_endpoint,
+                                        tokenUrl: cur.token_endpoint,
+                                        // 'x-tokenName': 'id_token',
+                                        scopes: {email: 'email'}
+                                    }
+                                }
+                            }
+                        }), {}),
+                        ...document.components
+                    }
+                }, {deep: true}), false, 2)).type('application/json');
+            }
+            return h.response(JSON.stringify(sortKeys(document, {deep: true}), false, 2)).type('application/json');
+        }
+        return Boom.notFound();
+    };
+
+    const formatSwagger = async({params, headers, url: {protocol}}, h) => {
+        const document = await apidoc(params.namespace, 'swagger');
+        if (document) {
+            const oidc = await getOidc(headers, protocol);
+            if (oidc && oidc.length) {
+                return h.response(JSON.stringify(sortKeys({
+                    security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
+                    securityDefinitions: oidc.reduce((prev, cur) => ({
+                        ...prev,
+                        [cur.issuer]: {
+                            type: 'oauth2',
+                            flow: 'authorizationCode',
+                            authorizationUrl: cur.authorization_endpoint,
+                            tokenUrl: cur.token_endpoint,
+                            // 'x-tokenName': 'id_token',
+                            scopes: {email: 'email'}
+                        }
+                    }), {}),
+                    ...document
+                }, {deep: true}), false, 2)).type('application/json');
+            }
+            return h.response(JSON.stringify(sortKeys(document, {deep: true}), false, 2)).type('application/json');
+        }
+        return Boom.notFound();
+    };
+
     return {
         routes: [{
+            method: 'GET',
+            path: `${base}/{namespace}/openapi.json`,
+            options: {
+                app: {logError: true},
+                auth: false,
+                handler: formatOpenApi
+            }
+        }, {
             method: 'GET',
             path: `${base}/{namespace}/swagger.json`,
             options: {
                 app: {logError: true},
                 auth: false,
-                handler: async({params, headers, url: {protocol}}, h) => {
-                    const document = await apidoc(params.namespace);
-                    const host = (headers['x-forwarded-proto'] || protocol) + '//' + (headers['x-forwarded-host'] || headers.host);
-                    let security = securityByHost[host];
-
-                    if (issuers && !security) {
-                        let oidc = [];
-                        try {
-                            oidc = await issuers(headers, protocol);
-                        } catch {
-                            // generate doc without security details
-                        }
-                        security = oidc && oidc.length && {
-                            security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
-                            securityDefinitions: oidc.reduce((prev, cur) => ({
-                                ...prev,
-                                [cur.issuer]: {
-                                    type: 'oauth2',
-                                    flow: 'authorizationCode',
-                                    authorizationUrl: cur.authorization_endpoint,
-                                    tokenUrl: cur.token_endpoint,
-                                    // 'x-tokenName': 'id_token',
-                                    scopes: {email: 'email'}
-                                }
-                            }), {})
-                        };
-                        securityByHost[host] = security;
-                    }
-
-                    if (document) {
-                        return h.response(JSON.stringify(sortKeys({...security, ...document}, {deep: true}), false, 2)).type('application/json');
-                    } else {
-                        return Boom.notFound();
-                    }
+                handler: formatSwagger
+            }
+        }, {
+            method: 'GET',
+            path: `${base}/{namespace}/document.json`,
+            options: {
+                app: {logError: true},
+                auth: false,
+                handler: async(request, h) => {
+                    const specs = await apidoc();
+                    const spec = specs.find(([namespace]) => namespace === request.params.namespace);
+                    return spec
+                        ? spec[1].openapi
+                            ? formatOpenApi(request, h)
+                            : spec[1].swagger
+                                ? formatSwagger(request, h)
+                                : Boom.notFound()
+                        : Boom.notFound();
                 }
             }
         }, internal && {
@@ -101,8 +162,8 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
                 auth: false,
                 app: {logError: true},
                 handler: async(request, h) => h.response((await apidoc())
-                    .map(([namespace, {host, info: {title, description, version} = {}}]) => ({
-                        namespace, title, description, version, host
+                    .map(([namespace, {host, info: {title, description, version} = {}, swagger, openapi}]) => ({
+                        namespace, title, description, version, host, swagger, openapi
                     }))).type('application/json')
             }
         }, {

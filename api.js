@@ -12,7 +12,7 @@ module.exports = (documents, version) => `
         <div id="api">
             <div class="apiWrap">
                 <h1>API Docs <span>${version}</span></h1>
-                <div class="api">${documents.map(([namespace, {host, info: {title, description, version} = {}}]) => `
+                <div class="api">${documents.map(([namespace, {host, info: {title, description, version} = {}, swagger, openapi}]) => `
                     <div>
                         <div class="namespace">
                             <div class="title">${title}</div>
@@ -22,7 +22,8 @@ module.exports = (documents, version) => `
                             <div class="description">${description}</div>
                             <hr />
                             <div class="description">API links</div>
-                            <div class="link"><a href="${prefix(host, namespace)}swagger.json">Swagger</a></div>
+                            ${swagger ? `<div class="link"><a href="${prefix(host, namespace)}swagger.json">Swagger</a></div>` : ''}
+                            ${openapi ? `<div class="link"><a href="${prefix(host, namespace)}openapi.json">OpenAPI</a></div>` : ''}
                             <div class="link"><a href="${prefix(host, namespace)}swagger.html">Swagger UI</a></div>
                             <div class="link"><a href="${prefix(host, namespace)}redoc.html">Redoc</a></div>
                         </div>

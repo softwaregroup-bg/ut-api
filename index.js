@@ -4,16 +4,6 @@ const swaggerParser = require('@apidevtools/swagger-parser');
 const convertJoi = require('ut-joi').convert;
 const Boom = require('@hapi/boom');
 
-const emptyDoc = (namespace = 'custom', version = '0.0.1') => ({
-    swagger: '2.0',
-    info: {
-        title: namespace,
-        description: 'UT Microservice API',
-        version
-    },
-    paths: {}
-});
-
 const rpcProps = method => ({
     id: {
         type: ['string', 'number'],
@@ -31,6 +21,64 @@ const rpcProps = method => ({
     }
 });
 
+const formatPath = (standard, {
+    tags,
+    summary,
+    description,
+    operationId,
+    bodySchema,
+    resultSchema
+}) => ({
+    tags,
+    summary,
+    description,
+    operationId,
+    ...(standard === 'swagger') ? {
+        parameters: [bodySchema && {
+            name: 'body',
+            in: 'body',
+            description: 'body',
+            required: true,
+            schema: bodySchema
+        }].filter(Boolean),
+        produces: ['application/json'],
+        responses: {
+            default: {
+                description: 'Invalid request',
+                schema: {}
+            },
+            200: {
+                description: 'Successful response',
+                schema: resultSchema
+            }
+        }
+    } : { // openapi
+        ...bodySchema && {
+            requestBody: {
+                content: {
+                    'application/json': {
+                        schema: bodySchema
+                    }
+                }
+            }
+        },
+        responses: {
+            default: {
+                description: 'Invalid request',
+                content: {}
+            },
+            200: {
+                description: 'Successful response',
+                content: {
+                    'application/json': {
+                        schema: resultSchema
+                    }
+                }
+            }
+        }
+    }
+});
+
 async function registerOpenApiAsync(
     document,
     swaggerRoutes,
@@ -45,7 +93,7 @@ async function registerOpenApiAsync(
             result = await swaggerParser.bundle(document);
             break;
         default:
-            result = document || emptyDoc();
+            result = document;
     }
 
     await swaggerParser.validate(result);
@@ -104,17 +152,15 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
     const documents = {};
 
     function registerOpenApi(map) {
-        Object.entries(map).forEach(([name, document]) => {
+        for (const [name, document] of Object.entries(map)) {
             const doc = registerOpenApiAsync(
                 document,
                 swaggerRoutes,
                 errors
             );
-            if (!documents[name]) documents[name] = {};
-            documents[name].doc = doc;
+            documents[name] = {doc};
             pending.push(doc);
-            return doc;
-        });
+        }
     }
 
     if (config.document) registerOpenApi({rest: config.document});
@@ -139,24 +185,39 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
         }
     }
 
-    async function apidoc(namespace) {
+    async function apidoc(namespace, standard = 'swagger') {
         await Promise.all(pending);
         if (namespace) {
-            const {doc, map} = documents[namespace] || {paths: {}};
-            const result = await doc;
+            const {map, info, doc} = documents[namespace] || {};
+            if (doc) {
+                const content = await doc;
+                return content[standard] && content;
+            };
             if (map) {
-                const paths = result.paths;
+                const result = {
+                    ...(standard === 'swagger') ? {
+                        swagger: '2.0'
+                    } : {
+                        openapi: '3.0.0'
+                    },
+                    info,
+                    paths: {}
+                };
                 for (const mod of map.values()) {
                     Object.entries(mod).forEach(([name, value]) => {
                         const [method, path] = name.split(' ', 2);
-                        if (!paths[path]) paths[path] = {};
-                        paths[path][method.toLowerCase()] = value;
+                        if (!result.paths[path]) result.paths[path] = {};
+                        result.paths[path][method.toLowerCase()] = formatPath(standard, value);
                     });
                 }
+                return result;
             }
-            return result;
         } else {
-            return Promise.all(Object.entries(documents).map(async([name, value]) => [name, await value.doc]));
+            return Promise.all(Object.entries(documents).map(async([name, {info, doc}]) => {
+                if (info) return [name, {info, swagger: true, openapi: true}];
+                const content = await doc;
+                return [name, {info: content.info, swagger: !!content.swagger, openapi: !!content.openapi}];
+            }));
         }
     };
 
@@ -214,7 +275,11 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 const namespace = method.split('.')[0];
                 if (!documents[namespace]) {
                     documents[namespace] = {
-                        doc: emptyDoc(namespace, version),
+                        info: {
+                            title: namespace,
+                            description: 'UT Microservice API',
+                            version
+                        },
                         map: new Map()
                     };
                 }
@@ -224,31 +289,16 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                     summary: description,
                     description: [].concat(notes).join('\n'),
                     operationId: method,
-                    parameters: [bodySchema && {
-                        name: 'body',
-                        in: 'body',
-                        description: 'body',
-                        required: true,
-                        schema: bodySchema
-                    }].filter(Boolean),
-                    responses: {
-                        default: {
-                            description: 'Invalid request',
-                            schema: {}
-                        },
-                        200: {
-                            description: 'Successful response',
-                            schema: !resultSchema ? {
-                                type: 'object'
-                            } : {
-                                type: 'object',
-                                additionalProperties: false,
-                                required: ['id', 'jsonrpc', 'method'],
-                                properties: {
-                                    ...rpcProps(method),
-                                    ...resultSchema && {result: resultSchema}
-                                }
-                            }
+                    bodySchema,
+                    resultSchema: !resultSchema ? {
+                        type: 'object'
+                    } : {
+                        type: 'object',
+                        additionalProperties: false,
+                        required: ['id', 'jsonrpc', 'method'],
+                        properties: {
+                            ...rpcProps(method),
+                            ...resultSchema && {result: resultSchema}
                         }
                     }
                 });
