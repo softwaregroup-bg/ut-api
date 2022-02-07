@@ -1,3 +1,12 @@
+# [7.21.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.20.0...v7.21.0) (2022-02-07)
+
+
+### Features
+
+* openapi documents ([9602859](https://github.com/softwaregroup-bg/ut-api/commit/9602859434d70bcd5aeaeabdc880636da2a6a997))
+
+
+
 # [7.20.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.19.4...v7.20.0) (2022-02-04)
 
 
