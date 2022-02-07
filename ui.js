@@ -101,8 +101,8 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             options: {
                 app: {logError: true},
                 auth: false,
-                handler: (request, h) => {
-                    const specs = apidoc();
+                handler: async (request, h) => {
+                    const specs = await apidoc();
                     const spec = specs.find(([namespace]) => namespace === request.params.namespace);
                     return spec
                         ? spec[1].openapi

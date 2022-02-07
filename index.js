@@ -148,16 +148,18 @@ const authStrategy = (securityItems, {securityDefinitions = {}, swagger, openapi
 
 module.exports = async(config = {}, errors, issuers, internal, forward = () => undefined) => {
     const swaggerRoutes = {};
+    const pending = [];
     const documents = {};
 
     async function registerOpenApi(map) {
         for (const [name, document] of Object.entries(map)) {
-            const doc = await registerOpenApiAsync(
+            const doc = registerOpenApiAsync(
                 document,
                 swaggerRoutes,
                 errors
             );
             documents[name] = {doc};
+            pending.push(doc);
         }
     }
 
@@ -183,10 +185,14 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
         }
     }
 
-    function apidoc(namespace, standard = 'swagger') {
+    async function apidoc(namespace, standard = 'swagger') {
+        await Promise.all(pending);
         if (namespace) {
             const {map, info, doc} = documents[namespace] || {};
-            if (doc) return doc[standard] && doc;
+            if (doc) {
+                const content = await doc;
+                return content[standard] && content;
+            };
             if (map) {
                 const result = {
                     ...(standard === 'swagger') ? {
@@ -207,16 +213,11 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 return result;
             }
         } else {
-            return Object.entries(documents).map(([name, {info, doc}]) => {
-                return [
-                    name,
-                    doc ? {
-                        info: doc.info,
-                        ...doc.swagger && {swagger: true},
-                        ...doc.openapi && {openapi: true}
-                    } : {info, swagger: true, openapi: true}
-                ];
-            });
+            return Promise.all(Object.entries(documents).map(async([name, {info, swagger, openapi, doc}]) => {
+                if (info) return [name, {info, swagger, openapi}];
+                const content = await doc;
+                return [name, {info: content.info, swagger: !!content.swagger, openapi: !!content.openapi}];
+            }));
         }
     };
 
@@ -274,6 +275,8 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 const namespace = method.split('.')[0];
                 if (!documents[namespace]) {
                     documents[namespace] = {
+                        swagger: true,
+                        openapi: true,
                         info: {
                             title: namespace,
                             description: 'UT Microservice API',
@@ -326,6 +329,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
             return result;
         },
         async restRoutes({namespace, fn, object, logger, debug}) {
+            await Promise.all(pending);
             if (!swaggerRoutes[namespace]) return [];
             const result = swaggerRoutes[namespace].map(({
                 document,
