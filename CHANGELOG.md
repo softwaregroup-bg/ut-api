@@ -1,3 +1,12 @@
+## [7.21.1](https://github.com/softwaregroup-bg/ut-api/compare/v7.21.0...v7.21.1) (2022-04-20)
+
+
+### Bug Fixes
+
+* add support for openapi 3 request/response validaitons ([#14](https://github.com/softwaregroup-bg/ut-api/issues/14)) ([ca26838](https://github.com/softwaregroup-bg/ut-api/commit/ca268384d0472823206a87d752caac467653c01d))
+
+
+
 # [7.21.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.20.0...v7.21.0) (2022-02-07)
 
 
