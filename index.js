@@ -98,9 +98,20 @@ async function registerOpenApiAsync(
 
     await swaggerParser.validate(result);
     const dereferenced = await swaggerParser.dereference(result);
-    if (dereferenced?.swagger && (!dereferenced?.securityDefinitions || !Object.keys(dereferenced.securityDefinitions).length)) throw errors['bus.securityDefinitions']();
-    if (dereferenced?.openapi && (!dereferenced?.components?.securitySchemes || !Object.keys(dereferenced.components.securitySchemes).length)) throw errors['bus.securitySchemes']();
-    const getRoutePath = path => [result.basePath, path].filter(Boolean).join('');
+    let getBasePath;
+    if (dereferenced.swagger) {
+        if (!dereferenced.securityDefinitions || !Object.keys(dereferenced.securityDefinitions).length) throw errors['bus.securityDefinitions']();
+        getBasePath = () => result.basePath;
+    } else if (dereferenced.openapi) {
+        if (!dereferenced.components?.securitySchemes || !Object.keys(dereferenced.components.securitySchemes).length) throw errors['bus.securitySchemes']();
+        getBasePath = schema => {
+            const docUrl = result.servers?.[0]?.url;
+            const schemaUrl = schema.servers?.[0]?.url;
+            return schemaUrl
+                ? schemaUrl.startsWith('/') && schemaUrl
+                : docUrl?.startsWith('/') && docUrl;
+        };
+    }
 
     Object.entries(result.paths).forEach(([path, methods]) => !path.startsWith('x-') &&
         Object.entries(methods).forEach(([method, schema]) => {
@@ -111,11 +122,13 @@ async function registerOpenApiAsync(
             if (successCodes.length !== 1) throw new Error('Exactly one successful HTTP status code must be defined');
             const [namespace] = operationId.split('.');
             if (!swaggerRoutes[namespace]) swaggerRoutes[namespace] = [];
+            const basePath = getBasePath(schema);
             swaggerRoutes[namespace].push({
                 document: dereferenced,
                 method,
                 schema,
-                path: getRoutePath(path),
+                basePath,
+                path: [basePath, path].filter(Boolean).join(''),
                 operationId,
                 successCode: successCodes[0],
                 receive: schema['x-ut-receive'] || methods['x-ut-receive'] || result.paths['x-ut-receive'],
@@ -332,6 +345,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
             const result = swaggerRoutes[namespace].map(({
                 document,
                 method,
+                basePath,
                 path,
                 schema,
                 operationId,
@@ -339,7 +353,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 receive,
                 errorTransform
             }) => {
-                const validate = methodValidator(document, path, method);
+                const validate = methodValidator(document, path, method, basePath);
                 const transform = async(request, error, statusCode) => {
                     let result;
                     if (errorTransform) {
