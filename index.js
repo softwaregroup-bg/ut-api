@@ -132,7 +132,8 @@ async function registerOpenApiAsync(
                 operationId,
                 successCode: successCodes[0],
                 receive: schema['x-ut-receive'] || methods['x-ut-receive'] || result.paths['x-ut-receive'],
-                errorTransform: schema['x-ut-errorTransform'] || methods['x-ut-errorTransform'] || result.paths['x-ut-errorTransform']
+                errorTransform: schema['x-ut-errorTransform'] || methods['x-ut-errorTransform'] || result.paths['x-ut-errorTransform'],
+                authorize: schema['x-ut-authorize'] || methods['x-ut-authorize'] || result.paths['x-ut-authorize']
             });
         })
     );
@@ -339,7 +340,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
             if (moduleName) result.forEach(route => register(routesMap, moduleName, route.method, route.path, route));
             return result;
         },
-        async restRoutes({namespace, fn, object, logger, debug}) {
+        async restRoutes({namespace, fn, object, logger, debug, checkAuth}) {
             await Promise.all(pending);
             if (!swaggerRoutes[namespace]) return [];
             const result = swaggerRoutes[namespace].map(({
@@ -351,7 +352,8 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 operationId,
                 successCode,
                 receive,
-                errorTransform
+                errorTransform,
+                authorize
             }) => {
                 const validate = methodValidator(document, path, method, basePath);
                 const transform = async(request, error, statusCode) => {
@@ -415,6 +417,23 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                     options: {
                         auth: authStrategy(schema.security || document.security, document),
                         ...schema['x-options'],
+                        ...authorize && checkAuth && {
+                            pre: [
+                                {
+                                    assign: 'utAuth',
+                                    failAction(req, h, error) {
+                                        return h.response(error.message).code(403).takeover(); // Forbidden
+                                    },
+                                    async method(req) {
+                                        if (req.auth.strategy) {
+                                            await checkAuth(operationId, req.auth.credentials && req.auth.credentials.permissionMap);
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                }
+                            ]
+                        },
                         handler: async(request, h) => {
                             const [{params, query, payload, headers, auth}] = await receiveRequest(request);
                             const validation = await validate.request({
