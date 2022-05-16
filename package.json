@@ -16,7 +16,7 @@
     "inert": "5.1.0",
     "joi": "17.4.2",
     "tap": "^15.0.9",
-    "ut-tools": "^6.40.1"
+    "ut-tools": "^6.40.9"
   },
   "peerDependencies": {},
   "scripts": {
