@@ -193,7 +193,7 @@ Object {
         },
         "summary": "method with predicate xxx",
         "tags": Array [
-          "rpc/subject (utApi.validations@1.2.3)",
+          "rpc/subject (utApi.validations)",
         ],
       },
     },
@@ -260,7 +260,7 @@ Object {
         },
         "summary": "method with predicate yyy",
         "tags": Array [
-          "rpc/subject (utApi.validations@1.2.3)",
+          "rpc/subject (utApi.validations)",
         ],
       },
     },
@@ -347,7 +347,7 @@ Object {
         },
         "summary": "method with predicate xxx",
         "tags": Array [
-          "rpc/subject (utApi.validations@1.2.3)",
+          "rpc/subject (utApi.validations)",
         ],
       },
     },
@@ -415,7 +415,7 @@ Object {
         },
         "summary": "method with predicate yyy",
         "tags": Array [
-          "rpc/subject (utApi.validations@1.2.3)",
+          "rpc/subject (utApi.validations)",
         ],
       },
     },
