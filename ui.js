@@ -7,7 +7,7 @@ const path = require('path');
 const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 const sortKeys = require('sort-keys');
 
-module.exports = ({apidoc, service = 'server', version, base = '/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
+module.exports = ({apidoc, auth, service = 'server', version, base = '/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
     const oidcByHost = {};
     async function getOidc(headers, protocol) {
         const host = (headers['x-forwarded-proto'] || protocol) + '//' + (headers['x-forwarded-host'] || headers.host);
@@ -20,8 +20,8 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
         }
         return oidcByHost[host];
     }
-    const formatOpenApi = async({params, headers, url: {protocol}}, h) => {
-        const document = await apidoc(params.namespace, 'openapi');
+    const formatOpenApi = async({auth: requestAuth, params, headers, url: {protocol}}, h) => {
+        const document = await apidoc(requestAuth, params.namespace, 'openapi');
         if (document) {
             const oidc = await getOidc(headers, protocol);
             if (oidc && oidc.length) {
@@ -52,8 +52,8 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
         return Boom.notFound();
     };
 
-    const formatSwagger = async({params, headers, url: {protocol}}, h) => {
-        const document = await apidoc(params.namespace, 'swagger');
+    const formatSwagger = async({auth: requestAuth, params, headers, url: {protocol}}, h) => {
+        const document = await apidoc(requestAuth, params.namespace, 'swagger');
         if (document) {
             const oidc = await getOidc(headers, protocol);
             if (oidc && oidc.length) {
@@ -84,7 +84,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             path: `${base}/{namespace}/openapi.json`,
             options: {
                 app: {logError: true},
-                auth: false,
+                auth,
                 handler: formatOpenApi
             }
         }, {
@@ -92,7 +92,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             path: `${base}/{namespace}/swagger.json`,
             options: {
                 app: {logError: true},
-                auth: false,
+                auth,
                 handler: formatSwagger
             }
         }, {
@@ -100,9 +100,9 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             path: `${base}/{namespace}/document.json`,
             options: {
                 app: {logError: true},
-                auth: false,
+                auth,
                 handler: async(request, h) => {
-                    const specs = await apidoc();
+                    const specs = await apidoc(request.auth);
                     const spec = specs.find(([namespace]) => namespace === request.params.namespace);
                     return spec
                         ? spec[1].openapi
@@ -116,7 +116,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
         }, internal && {
             method: 'GET',
             path: `${base}/internal/`,
-            options: {auth: false, app: {logError: true}},
+            options: {auth, app: {logError: true}},
             handler: async(request, h) =>
                 apiList((await internal()).reduce((prev, service) => [
                     ...prev,
@@ -132,7 +132,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
         }, internal && {
             method: 'GET',
             path: `${base}/internal/{serviceHost}:{servicePort}/{doc*}`,
-            options: {auth: false, app: {logError: true}},
+            options: {auth, app: {logError: true}},
             handler: {
                 proxy: {
                     passThrough: true,
@@ -143,7 +143,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             method: 'GET',
             path: base,
             options: {
-                auth: false,
+                auth,
                 app: {logError: true},
                 handler: (request, h) => h.redirect(path + '/')
             }
@@ -151,7 +151,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             method: 'GET',
             path: '/documentation',
             options: {
-                auth: false,
+                auth,
                 app: {logError: true},
                 handler: (request, h) => h.redirect(path + '/')
             }
@@ -159,9 +159,9 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             method: 'GET',
             path: base + '.json',
             options: {
-                auth: false,
+                auth,
                 app: {logError: true},
-                handler: async(request, h) => h.response((await apidoc())
+                handler: async(request, h) => h.response((await apidoc(request.auth))
                     .map(([namespace, {host, info: {title, description, version} = {}, swagger, openapi}]) => ({
                         namespace, title, description, version, host, swagger, openapi
                     }))).type('application/json')
@@ -170,7 +170,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             method: 'GET',
             path: `${base}/{service}`,
             options: {
-                auth: false,
+                auth,
                 app: {logError: true},
                 handler: (request, h) => h.redirect(request.uri + '/')
             }
@@ -178,19 +178,19 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
             method: 'GET',
             path: `${path}/`,
             options: {
-                auth: false,
+                auth,
                 app: {logError: true},
-                handler: async(request, h) => h.response(apiList(await apidoc(), version)).type('text/html')
+                handler: async(request, h) => h.response(apiList(await apidoc(request.auth), version)).type('text/html')
             }
         }, {
             method: 'GET',
             path: `${base}/{service}/swagger.html`,
-            options: {auth: false, app: {logError: true}},
+            options: {auth, app: {logError: true}},
             handler: (request, h) => h.response(swagger(initOAuth)).type('text/html')
         }, {
             method: 'GET',
             path: `${base}/swagger/ui/{page*}`,
-            options: {auth: false, app: {logError: true}},
+            options: {auth, app: {logError: true}},
             handler: {
                 directory: {
                     path: uiDistPath,
@@ -200,7 +200,7 @@ module.exports = ({apidoc, service = 'server', version, base = '/api', path = ba
         }, {
             method: 'GET',
             path: `${base}/{service}/{page*}`,
-            options: {auth: false, app: {logError: true}},
+            options: {auth, app: {logError: true}},
             handler: {
                 directory: {
                     path: docsPath,
