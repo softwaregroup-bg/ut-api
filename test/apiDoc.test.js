@@ -8,7 +8,7 @@ const custom = require('./swagger');
 tap.test('rpcRoutes', async assert => {
     const utApi = require('..');
     const {rpcRoutes, registerOpenApi, uiRoutes} = await utApi(
-        {service: 'test', version: '1.2.3', auth: 'openId'}, // config
+        {service: 'test', version: '1.2.3', auth: false}, // config
         {}, // errors
         () => ([{
             issuer: 'ut-login',
