@@ -1,7 +1,7 @@
 const tap = require('tap');
 const joi = require('joi');
 const got = require('got');
-const hapi = require('hapi');
+const hapi = require('@hapi/hapi');
 const inert = require('inert');
 const custom = require('./swagger');
 
