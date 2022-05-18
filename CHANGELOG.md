@@ -1,3 +1,12 @@
+# [8.1.0](https://github.com/softwaregroup-bg/ut-api/compare/v7.21.2...v8.1.0) (2022-05-18)
+
+
+### Features
+
+* api docs auth ([d23f270](https://github.com/softwaregroup-bg/ut-api/commit/d23f2705349c1bbb172a752c55b6b24b083099d5))
+
+
+
 ## [7.21.2](https://github.com/softwaregroup-bg/ut-api/compare/v7.21.1...v7.21.2) (2022-05-04)
 
 
