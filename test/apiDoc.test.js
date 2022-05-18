@@ -1,14 +1,14 @@
 const tap = require('tap');
 const joi = require('joi');
 const got = require('got');
-const hapi = require('hapi');
+const hapi = require('@hapi/hapi');
 const inert = require('inert');
 const custom = require('./swagger');
 
 tap.test('rpcRoutes', async assert => {
     const utApi = require('..');
     const {rpcRoutes, registerOpenApi, uiRoutes} = await utApi(
-        {service: 'test', version: '1.2.3', auth: 'openId'}, // config
+        {service: 'test', version: '1.2.3', ui: {auth: false}}, // config
         {}, // errors
         () => ([{
             issuer: 'ut-login',
@@ -48,14 +48,14 @@ tap.test('rpcRoutes', async assert => {
     server.route(uiRoutes);
     await server.start();
     try {
-        const modules = await got(`${server.info.uri}/api.json`).json();
+        const modules = await got(`${server.info.uri}/aa/api.json`).json();
         for (const {namespace, swagger, openapi} of modules) {
             if (swagger) {
-                const swaggerDoc = await got(`${server.info.uri}/api/${namespace}/swagger.json`).json();
+                const swaggerDoc = await got(`${server.info.uri}/aa/api/${namespace}/swagger.json`).json();
                 assert.matchSnapshot(swaggerDoc, `${namespace} namespace swagger document`);
             }
             if (openapi) {
-                const openapiDoc = await got(`${server.info.uri}/api/${namespace}/openapi.json`).json();
+                const openapiDoc = await got(`${server.info.uri}/aa/api/${namespace}/openapi.json`).json();
                 assert.matchSnapshot(openapiDoc, `${namespace} namespace openapi document`);
             }
         }

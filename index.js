@@ -160,7 +160,7 @@ const authStrategy = (securityItems, {securityDefinitions = {}, swagger, openapi
     };
 };
 
-module.exports = async(config = {}, errors, issuers, internal, forward = () => undefined) => {
+module.exports = async(config = {}, errors, issuers, internal, forward = () => undefined, checkAuth) => {
     const swaggerRoutes = {};
     const pending = [];
     const documents = {};
@@ -199,7 +199,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
         }
     }
 
-    async function apidoc(namespace, standard = 'swagger') {
+    async function apidoc(auth, namespace, standard = 'swagger') {
         await Promise.all(pending);
         if (namespace) {
             const {map, info, doc} = documents[namespace] || {};
@@ -218,11 +218,13 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                     paths: {}
                 };
                 for (const mod of map.values()) {
-                    Object.entries(mod).forEach(([name, value]) => {
+                    for (const [name, value] of Object.entries(mod)) {
                         const [method, path] = name.split(' ', 2);
+                        const permissions = auth?.credentials?.permissionMap;
+                        if (permissions && !await checkAuth(value.operationId, permissions, true)) continue;
                         if (!result.paths[path]) result.paths[path] = {};
                         result.paths[path][method.toLowerCase()] = formatPath(standard, value);
-                    });
+                    };
                 }
                 return result;
             }
@@ -235,7 +237,15 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
         }
     };
 
-    const uiRoutes = (config.doc !== false) && require('./ui')({service: config.service, version: config.version, ...config.ui, apidoc, issuers, internal}).routes;
+    const uiRoutes = (config.doc !== false) && require('./ui')({
+        service: config.service,
+        version: config.version,
+        auth: 'api',
+        ...config.ui,
+        apidoc,
+        issuers,
+        internal
+    }).routes;
     if (uiRoutes) uiRoutes.forEach(route => register(routesMap, 'utApi', route.method, route.path, route));
 
     return {
@@ -299,7 +309,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 }
                 const document = documents[namespace];
                 register(document.map, moduleName, httpMethod, path, {
-                    tags: [moduleName ? `rpc/${method.split('.')[0]} (${moduleName}@${version})` : `rpc/${method.split('.')[0]}`],
+                    tags: [moduleName ? `rpc/${method.split('.')[0]} (${moduleName})` : `rpc/${method.split('.')[0]}`],
                     summary: description,
                     description: [].concat(notes).join('\n'),
                     operationId: method,
@@ -340,7 +350,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
             if (moduleName) result.forEach(route => register(routesMap, moduleName, route.method, route.path, route));
             return result;
         },
-        async restRoutes({namespace, fn, object, logger, debug, checkAuth}) {
+        async restRoutes({namespace, fn, object, logger, debug}) {
             await Promise.all(pending);
             if (!swaggerRoutes[namespace]) return [];
             const result = swaggerRoutes[namespace].map(({
