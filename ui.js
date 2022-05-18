@@ -7,7 +7,7 @@ const path = require('path');
 const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 const sortKeys = require('sort-keys');
 
-module.exports = ({apidoc, auth, service = 'server', version, base = '/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
+module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
     const oidcByHost = {};
     async function getOidc(headers, protocol) {
         const host = (headers['x-forwarded-proto'] || protocol) + '//' + (headers['x-forwarded-host'] || headers.host);
@@ -139,11 +139,19 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
                     uri: 'http://{serviceHost}:{servicePort}/{doc}'
                 }
             }
+        }, base !== '/api' && {
+            method: 'GET',
+            path: '/api',
+            options: {
+                auth: false,
+                app: {logError: true},
+                handler: (request, h) => h.redirect(path + '/')
+            }
         }, {
             method: 'GET',
             path: base,
             options: {
-                auth,
+                auth: false,
                 app: {logError: true},
                 handler: (request, h) => h.redirect(path + '/')
             }
@@ -151,7 +159,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
             method: 'GET',
             path: '/documentation',
             options: {
-                auth,
+                auth: false,
                 app: {logError: true},
                 handler: (request, h) => h.redirect(path + '/')
             }
@@ -170,7 +178,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
             method: 'GET',
             path: `${base}/{service}`,
             options: {
-                auth,
+                auth: false,
                 app: {logError: true},
                 handler: (request, h) => h.redirect(request.uri + '/')
             }

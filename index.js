@@ -240,8 +240,8 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
     const uiRoutes = (config.doc !== false) && require('./ui')({
         service: config.service,
         version: config.version,
+        auth: 'api',
         ...config.ui,
-        auth: config.auth,
         apidoc,
         issuers,
         internal
