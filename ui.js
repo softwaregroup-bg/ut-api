@@ -6,6 +6,8 @@ const swagger = require('./swagger');
 const path = require('path');
 const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 const sortKeys = require('sort-keys');
+const crypto = require('crypto');
+const got = require('got');
 
 module.exports = ({apidoc, auth, service = 'server', version, base = '/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
     const oidcByHost = {};
@@ -78,6 +80,65 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
         return Boom.notFound();
     };
 
+    const cache = {};
+    const ext = {
+        ...(auth === 'openId') && {
+            onPreAuth: {
+                async method({query, info, headers, url: {protocol, href}}, h) {
+                    if (headers.authorization) return h.continue;
+                    const [oidc] = await getOidc(headers, protocol);
+                    const remoteAddress = headers['x-real-ip'] || info.remoteAddress;
+                    if (!cache[remoteAddress]) cache[remoteAddress] = {};
+                    const context = cache[remoteAddress];
+                    if (context.verifier) {
+                        if (query.code) {
+                            const response = await got(oidc.token_endpoint, {
+                                method: 'post',
+                                form: {
+                                    grant_type: 'authorization_code',
+                                    code: query.code,
+                                    code_verifier: context.verifier,
+                                    client_id: 'web',
+                                    client_secret: '123',
+                                    redirect_uri: href
+                                }
+                            }).json();
+                            context.token = response.access_token;
+                        }
+                        delete context.verifier;
+                    }
+                    if (context.token) {
+                        headers.authorization = 'Bearer ' + context.token;
+                        return h.continue;
+                    }
+                    context.verifier = crypto.randomBytes(32).toString('base64');
+                    const url = new URL(oidc.authorization_endpoint);
+                    url.searchParams.set('response_type', 'code');
+                    url.searchParams.set('client_id', 'web');
+                    url.searchParams.set('redirect_uri', href);
+                    url.searchParams.set('scope', 'openid');
+                    url.searchParams.set('code_challenge_method', 'S256');
+                    url.searchParams.set('code_challenge',
+                        crypto
+                            .createHash('SHA256')
+                            .update(context.verifier)
+                            .digest()
+                            .toString('base64')
+                            .replace(/\+/g, '-')
+                            .replace(/\//g, '_')
+                            .replace(/=/g, '')
+                    );
+                    return h.redirect(url).takeover();
+                }
+            },
+            onPostAuth: {
+                async method(request, h) {
+                    return h.continue;
+                }
+            }
+        }
+    };
+
     return {
         routes: [{
             method: 'GET',
@@ -85,6 +146,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
             options: {
                 app: {logError: true},
                 auth,
+                ext,
                 handler: formatOpenApi
             }
         }, {
@@ -93,6 +155,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
             options: {
                 app: {logError: true},
                 auth,
+                ext,
                 handler: formatSwagger
             }
         }, {
@@ -101,6 +164,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
             options: {
                 app: {logError: true},
                 auth,
+                ext,
                 handler: async(request, h) => {
                     const specs = await apidoc(request.auth);
                     const spec = specs.find(([namespace]) => namespace === request.params.namespace);
@@ -116,7 +180,11 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
         }, internal && {
             method: 'GET',
             path: `${base}/internal/`,
-            options: {auth, app: {logError: true}},
+            options: {
+                auth,
+                ext,
+                app: {logError: true}
+            },
             handler: async(request, h) =>
                 apiList((await internal()).reduce((prev, service) => [
                     ...prev,
@@ -132,7 +200,11 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
         }, internal && {
             method: 'GET',
             path: `${base}/internal/{serviceHost}:{servicePort}/{doc*}`,
-            options: {auth, app: {logError: true}},
+            options: {
+                auth,
+                ext,
+                app: {logError: true}
+            },
             handler: {
                 proxy: {
                     passThrough: true,
@@ -144,6 +216,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
             path: base,
             options: {
                 auth,
+                ext,
                 app: {logError: true},
                 handler: (request, h) => h.redirect(path + '/')
             }
@@ -152,6 +225,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
             path: '/documentation',
             options: {
                 auth,
+                ext,
                 app: {logError: true},
                 handler: (request, h) => h.redirect(path + '/')
             }
@@ -160,6 +234,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
             path: base + '.json',
             options: {
                 auth,
+                ext,
                 app: {logError: true},
                 handler: async(request, h) => h.response((await apidoc(request.auth))
                     .map(([namespace, {host, info: {title, description, version} = {}, swagger, openapi}]) => ({
@@ -171,6 +246,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
             path: `${base}/{service}`,
             options: {
                 auth,
+                ext,
                 app: {logError: true},
                 handler: (request, h) => h.redirect(request.uri + '/')
             }
@@ -179,18 +255,27 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
             path: `${path}/`,
             options: {
                 auth,
+                ext,
                 app: {logError: true},
                 handler: async(request, h) => h.response(apiList(await apidoc(request.auth), version)).type('text/html')
             }
         }, {
             method: 'GET',
             path: `${base}/{service}/swagger.html`,
-            options: {auth, app: {logError: true}},
+            options: {
+                auth,
+                ext,
+                app: {logError: true}
+            },
             handler: (request, h) => h.response(swagger(initOAuth)).type('text/html')
         }, {
             method: 'GET',
             path: `${base}/swagger/ui/{page*}`,
-            options: {auth, app: {logError: true}},
+            options: {
+                auth,
+                ext,
+                app: {logError: true}
+            },
             handler: {
                 directory: {
                     path: uiDistPath,
@@ -200,7 +285,11 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
         }, {
             method: 'GET',
             path: `${base}/{service}/{page*}`,
-            options: {auth, app: {logError: true}},
+            options: {
+                auth,
+                ext,
+                app: {logError: true}
+            },
             handler: {
                 directory: {
                     path: docsPath,
@@ -211,7 +300,10 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/api', pat
         }, {
             method: 'GET',
             path: '/oauth2-redirect.html',
-            options: {auth: false, app: {logError: true}},
+            options: {
+                auth: false,
+                app: {logError: true}
+            },
             handler: {
                 file: {
                     path: redirect,
