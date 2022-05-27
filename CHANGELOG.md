@@ -1,3 +1,12 @@
+## [8.1.2](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.1...v8.1.2) (2022-05-27)
+
+
+### Bug Fixes
+
+* return error details ([b89a515](https://github.com/softwaregroup-bg/ut-api/commit/b89a515436006d5973f760b7cd7c16a9a1950f79))
+
+
+
 ## [8.1.1](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.0...v8.1.1) (2022-05-18)
 
 
