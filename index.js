@@ -386,8 +386,11 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                         const payload = debug ? {
                             ...error
                         } : {
+                            type: error.type,
                             message: error.message,
-                            type: error.type
+                            print: error.print,
+                            params: error.params,
+                            validation: error.validation
                         };
                         result = Boom.boomify(error, {statusCode: statusCode || 500});
                         Object.assign(result.output.payload, payload);
