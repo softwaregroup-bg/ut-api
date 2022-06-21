@@ -114,7 +114,7 @@ Object {
           "authorizationCode": Object {
             "authorizationUrl": "http://localhost:8090/rpc/login/form",
             "scopes": Object {
-              "email": "email",
+              "api": "API",
             },
             "tokenUrl": "http://localhost:8090/rpc/login/token",
           },
@@ -153,19 +153,25 @@ Object {
                   "additionalProperties": false,
                   "properties": Object {
                     "id": Object {
+                      "description": "Unique identifier of the request",
                       "example": "1",
-                      "type": Array [
-                        "string",
-                        "number",
-                      ],
+                      "maxLength": 36,
+                      "minLength": 1,
+                      "type": "string",
                     },
                     "jsonrpc": Object {
-                      "const": "2.0",
+                      "description": "Version of the JSON-RPC protocol",
+                      "enum": Array [
+                        "2.0",
+                      ],
                       "example": "2.0",
                       "type": "string",
                     },
                     "method": Object {
-                      "const": "subject.object.xxx",
+                      "description": "Name of the method",
+                      "enum": Array [
+                        "subject.object.xxx",
+                      ],
                       "example": "subject.object.xxx",
                       "type": "string",
                     },
@@ -176,7 +182,6 @@ Object {
                     },
                   },
                   "required": Array [
-                    "id",
                     "jsonrpc",
                     "method",
                   ],
@@ -193,7 +198,7 @@ Object {
         },
         "summary": "method with predicate xxx",
         "tags": Array [
-          "rpc/subject (utApi.validations)",
+          "subject",
         ],
       },
     },
@@ -220,19 +225,25 @@ Object {
                   "additionalProperties": false,
                   "properties": Object {
                     "id": Object {
+                      "description": "Unique identifier of the request",
                       "example": "1",
-                      "type": Array [
-                        "string",
-                        "number",
-                      ],
+                      "maxLength": 36,
+                      "minLength": 1,
+                      "type": "string",
                     },
                     "jsonrpc": Object {
-                      "const": "2.0",
+                      "description": "Version of the JSON-RPC protocol",
+                      "enum": Array [
+                        "2.0",
+                      ],
                       "example": "2.0",
                       "type": "string",
                     },
                     "method": Object {
-                      "const": "subject.object.yyy",
+                      "description": "Name of the method",
+                      "enum": Array [
+                        "subject.object.yyy",
+                      ],
                       "example": "subject.object.yyy",
                       "type": "string",
                     },
@@ -243,7 +254,6 @@ Object {
                     },
                   },
                   "required": Array [
-                    "id",
                     "jsonrpc",
                     "method",
                   ],
@@ -260,7 +270,7 @@ Object {
         },
         "summary": "method with predicate yyy",
         "tags": Array [
-          "rpc/subject (utApi.validations)",
+          "subject",
         ],
       },
     },
@@ -268,8 +278,14 @@ Object {
   "security": Array [
     Object {
       "ut-login": Array [
-        "email",
+        "api",
       ],
+    },
+  ],
+  "tags": Array [
+    Object {
+      "description": "utApi.validations",
+      "name": "subject",
     },
   ],
 }
@@ -310,19 +326,25 @@ Object {
               "additionalProperties": false,
               "properties": Object {
                 "id": Object {
+                  "description": "Unique identifier of the request",
                   "example": "1",
-                  "type": Array [
-                    "string",
-                    "number",
-                  ],
+                  "maxLength": 36,
+                  "minLength": 1,
+                  "type": "string",
                 },
                 "jsonrpc": Object {
-                  "const": "2.0",
+                  "description": "Version of the JSON-RPC protocol",
+                  "enum": Array [
+                    "2.0",
+                  ],
                   "example": "2.0",
                   "type": "string",
                 },
                 "method": Object {
-                  "const": "subject.object.xxx",
+                  "description": "Name of the method",
+                  "enum": Array [
+                    "subject.object.xxx",
+                  ],
                   "example": "subject.object.xxx",
                   "type": "string",
                 },
@@ -333,7 +355,6 @@ Object {
                 },
               },
               "required": Array [
-                "id",
                 "jsonrpc",
                 "method",
               ],
@@ -347,7 +368,7 @@ Object {
         },
         "summary": "method with predicate xxx",
         "tags": Array [
-          "rpc/subject (utApi.validations)",
+          "subject",
         ],
       },
     },
@@ -378,19 +399,25 @@ Object {
               "additionalProperties": false,
               "properties": Object {
                 "id": Object {
+                  "description": "Unique identifier of the request",
                   "example": "1",
-                  "type": Array [
-                    "string",
-                    "number",
-                  ],
+                  "maxLength": 36,
+                  "minLength": 1,
+                  "type": "string",
                 },
                 "jsonrpc": Object {
-                  "const": "2.0",
+                  "description": "Version of the JSON-RPC protocol",
+                  "enum": Array [
+                    "2.0",
+                  ],
                   "example": "2.0",
                   "type": "string",
                 },
                 "method": Object {
-                  "const": "subject.object.yyy",
+                  "description": "Name of the method",
+                  "enum": Array [
+                    "subject.object.yyy",
+                  ],
                   "example": "subject.object.yyy",
                   "type": "string",
                 },
@@ -401,7 +428,6 @@ Object {
                 },
               },
               "required": Array [
-                "id",
                 "jsonrpc",
                 "method",
               ],
@@ -415,7 +441,7 @@ Object {
         },
         "summary": "method with predicate yyy",
         "tags": Array [
-          "rpc/subject (utApi.validations)",
+          "subject",
         ],
       },
     },
@@ -423,21 +449,27 @@ Object {
   "security": Array [
     Object {
       "ut-login": Array [
-        "email",
+        "api",
       ],
     },
   ],
   "securityDefinitions": Object {
     "ut-login": Object {
       "authorizationUrl": "http://localhost:8090/rpc/login/form",
-      "flow": "authorizationCode",
+      "flow": "accessCode",
       "scopes": Object {
-        "email": "email",
+        "api": "API",
       },
       "tokenUrl": "http://localhost:8090/rpc/login/token",
       "type": "oauth2",
     },
   },
   "swagger": "2.0",
+  "tags": Array [
+    Object {
+      "description": "utApi.validations",
+      "name": "subject",
+    },
+  ],
 }
 `
