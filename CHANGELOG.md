@@ -1,3 +1,12 @@
+## [8.1.3](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.2...v8.1.3) (2022-06-21)
+
+
+### Bug Fixes
+
+* improve swagger and openapi compatibility ([762ab0d](https://github.com/softwaregroup-bg/ut-api/commit/762ab0d75631303f805a6f1fd466a61ca7b275d5))
+
+
+
 ## [8.1.2](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.1...v8.1.2) (2022-05-27)
 
 
