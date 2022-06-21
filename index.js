@@ -6,18 +6,23 @@ const Boom = require('@hapi/boom');
 
 const rpcProps = method => ({
     id: {
-        type: ['string', 'number'],
-        example: '1'
+        type: 'string',
+        example: '1',
+        minLength: 1,
+        maxLength: 36,
+        description: 'Unique identifier of the request'
     },
     jsonrpc: {
         type: 'string',
-        const: '2.0',
-        example: '2.0'
+        example: '2.0',
+        enum: ['2.0'],
+        description: 'Version of the JSON-RPC protocol'
     },
     method: {
         type: 'string',
-        const: method,
-        example: method
+        enum: [method],
+        example: method,
+        description: 'Name of the method'
     }
 });
 
@@ -215,17 +220,21 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                         openapi: '3.0.0'
                     },
                     info,
+                    tags: [],
                     paths: {}
                 };
+                const unique = new Map();
                 for (const mod of map.values()) {
                     for (const [name, value] of Object.entries(mod)) {
                         const [method, path] = name.split(' ', 2);
                         const permissions = auth?.credentials?.permissionMap;
                         if (permissions && !await checkAuth(value.operationId, permissions, true)) continue;
                         if (!result.paths[path]) result.paths[path] = {};
+                        unique.set(value.tagName, value.tagDescription);
                         result.paths[path][method.toLowerCase()] = formatPath(standard, value);
                     };
                 }
+                result.tags = result.tags.concat(Array.from(unique.entries()).map(([name, description]) => ({name, description})));
                 return result;
             }
         } else {
@@ -284,11 +293,12 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 {
                     type: 'object',
                     additionalProperties: false,
-                    required: ['id', 'jsonrpc', 'method', 'params'],
+                    required: ['jsonrpc', 'method', 'params'],
                     properties: {
                         ...rpcProps(method),
                         timeout: {
                             type: 'number',
+                            description: 'Timeout in milliseconds',
                             example: null,
                             nullable: true
                         },
@@ -309,7 +319,9 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 }
                 const document = documents[namespace];
                 register(document.map, moduleName, httpMethod, path, {
-                    tags: [moduleName ? `rpc/${method.split('.')[0]} (${moduleName})` : `rpc/${method.split('.')[0]}`],
+                    tags: [method.split('.')[0]],
+                    tagName: method.split('.')[0],
+                    tagDescription: moduleName || 'UT Microservice API',
                     summary: description,
                     description: [].concat(notes).join('\n'),
                     operationId: method,
@@ -319,7 +331,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                     } : {
                         type: 'object',
                         additionalProperties: false,
-                        required: ['id', 'jsonrpc', 'method'],
+                        required: ['jsonrpc', 'method'],
                         properties: {
                             ...rpcProps(method),
                             ...resultSchema && {result: resultSchema}

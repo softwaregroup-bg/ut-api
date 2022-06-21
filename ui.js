@@ -26,7 +26,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', 
             const oidc = await getOidc(headers, protocol);
             if (oidc && oidc.length) {
                 return h.response(JSON.stringify(sortKeys({
-                    security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
+                    security: oidc.map(({issuer}) => ({[issuer]: ['api']})),
                     ...document,
                     components: {
                         securitySchemes: oidc.reduce((prev, cur) => ({
@@ -38,7 +38,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', 
                                         authorizationUrl: cur.authorization_endpoint,
                                         tokenUrl: cur.token_endpoint,
                                         // 'x-tokenName': 'id_token',
-                                        scopes: {email: 'email'}
+                                        scopes: {api: 'API'}
                                     }
                                 }
                             }
@@ -58,20 +58,26 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', 
             const oidc = await getOidc(headers, protocol);
             if (oidc && oidc.length) {
                 return h.response(JSON.stringify(sortKeys({
-                    security: oidc.map(({issuer}) => ({[issuer]: ['email']})),
+                    security: oidc.map(({issuer}) => ({[issuer]: ['api']})),
                     securityDefinitions: oidc.reduce((prev, cur) => ({
                         ...prev,
                         [cur.issuer]: {
                             type: 'oauth2',
-                            flow: 'authorizationCode',
+                            flow: 'accessCode',
                             authorizationUrl: cur.authorization_endpoint,
                             tokenUrl: cur.token_endpoint,
                             // 'x-tokenName': 'id_token',
-                            scopes: {email: 'email'}
+                            scopes: {api: 'API'}
                         }
                     }), {}),
                     ...document
-                }, {deep: true}), false, 2)).type('application/json');
+                }, {deep: true}), (key, value) => {
+                    if (value?.oneOf) {
+                        const {oneOf, ...rest} = value;
+                        return {'x-oneOf': oneOf, ...rest};
+                    } else if (key === 'nullable') return undefined;
+                    return value;
+                }, 2)).type('application/json');
             }
             return h.response(JSON.stringify(sortKeys(document, {deep: true}), false, 2)).type('application/json');
         }
