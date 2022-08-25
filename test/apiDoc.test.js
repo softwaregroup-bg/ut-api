@@ -48,7 +48,7 @@ tap.test('rpcRoutes', async assert => {
     server.route(uiRoutes);
     await server.start();
     try {
-        const modules = await got(`${server.info.uri}/aa/api.json`).json();
+        const {api: modules} = await got(`${server.info.uri}/aa/api.json`).json();
         for (const {namespace, swagger, openapi} of modules) {
             if (swagger) {
                 const swaggerDoc = await got(`${server.info.uri}/aa/api/${namespace}/swagger.json`).json();
