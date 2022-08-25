@@ -175,10 +175,12 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', 
             options: {
                 auth,
                 app: {logError: true},
-                handler: async(request, h) => h.response((await apidoc(request.auth))
-                    .map(([namespace, {host, info: {title, description, version} = {}, swagger, openapi}]) => ({
-                        namespace, title, description, version, host, swagger, openapi
-                    }))).type('application/json')
+                handler: async(request, h) => h.response({
+                    api: (await apidoc(request.auth))
+                        .map(([namespace, {host, info: {title, description, version} = {}, swagger, openapi}]) => ({
+                            namespace, title, description, version, host, swagger, openapi
+                        }))
+                }).type('application/json')
             }
         }, {
             method: 'GET',

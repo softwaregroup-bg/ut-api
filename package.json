@@ -7,7 +7,7 @@
     "ut-joi": "^1.4.9",
     "sort-keys": "4.1.0",
     "@apidevtools/swagger-parser": "10.0.3",
-    "swagger-ui-dist": "^4.11.1",
+    "swagger-ui-dist": "^4.14.0",
     "ut-swagger2-validator": "^0.5.7"
   },
   "devDependencies": {
@@ -15,8 +15,7 @@
     "@hapi/hapi": "20.2.1",
     "inert": "5.1.0",
     "joi": "17.4.2",
-    "tap": "^16.2.0",
-    "ut-tools": "^6.41.5"
+    "tap": "^16.2.0"
   },
   "peerDependencies": {},
   "scripts": {
