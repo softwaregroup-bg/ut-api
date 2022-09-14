@@ -1,3 +1,12 @@
+## [8.1.5](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.4...v8.1.5) (2022-09-14)
+
+
+### Bug Fixes
+
+* handle httpResponse ([0f5453e](https://github.com/softwaregroup-bg/ut-api/commit/0f5453edbe48d018d182e6cb5bd7349476aa0961))
+
+
+
 ## [8.1.4](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.3...v8.1.4) (2022-08-25)
 
 
