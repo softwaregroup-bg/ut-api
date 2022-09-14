@@ -165,7 +165,7 @@ const authStrategy = (securityItems, {securityDefinitions = {}, swagger, openapi
     };
 };
 
-module.exports = async(config = {}, errors, issuers, internal, forward = () => undefined, checkAuth) => {
+module.exports = async(config = {}, errors, issuers, internal, forward = () => undefined, checkAuth, applyMeta = x => x) => {
     const swaggerRoutes = {};
     const pending = [];
     const documents = {};
@@ -495,9 +495,9 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                                 ...query
                             };
 
-                            let body, mtid;
+                            let body, mtid, httpResponse;
                             try {
-                                [body, {mtid}] = await fn.call(object, msg, {
+                                [body, {mtid, httpResponse}] = await fn.call(object, msg, {
                                     mtid: 'request',
                                     method: operationId,
                                     auth,
@@ -536,10 +536,11 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                                 logger?.error?.(validationError);
                                 throw await transform(request, validationError);
                             }
-                            return h
-                                .response(body)
-                                .header('x-envoy-decorator-operation', operationId)
-                                .code(successCode);
+                            return applyMeta(
+                                h.response(body)
+                                    .header('x-envoy-decorator-operation', operationId)
+                                    .code(successCode),
+                                {httpResponse});
                         }
                     }
                 };
