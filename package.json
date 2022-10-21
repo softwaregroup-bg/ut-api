@@ -1,6 +1,6 @@
 {
   "name": "ut-api",
-  "version": "8.1.5",
+  "version": "8.1.6",
   "main": "index.js",
   "dependencies": {
     "@hapi/boom": "9.1.0",

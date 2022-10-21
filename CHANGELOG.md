@@ -1,3 +1,12 @@
+## [8.1.6](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.5...v8.1.6) (2022-10-21)
+
+
+### Bug Fixes
+
+* swagger compatibility ([299b86d](https://github.com/softwaregroup-bg/ut-api/commit/299b86dccff0c737b016fd14165dfa66340d9929))
+
+
+
 ## [8.1.5](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.4...v8.1.5) (2022-09-14)
 
 
