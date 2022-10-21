@@ -26,6 +26,25 @@ const rpcProps = method => ({
     }
 });
 
+function skipNullable(where) {
+    return Object.fromEntries(
+        Object
+            .entries(where)
+            .map(([name, value]) =>
+                [name, (value && typeof value === 'object' && !Array.isArray(value)) ? downgrade(value) : value]
+            )
+    );
+}
+
+function downgrade({properties, items, nullable, oneOf, ...schema}) {
+    if (oneOf?.[0]) return downgrade(oneOf[0]);
+    const result = schema;
+    if (properties) result.properties = skipNullable(properties);
+    if (items) result.items = downgrade(items);
+    if (nullable && result.type) result.type = [].concat(result.type, 'null');
+    return result;
+}
+
 const formatPath = (standard, {
     tags,
     summary,
@@ -44,7 +63,7 @@ const formatPath = (standard, {
             in: 'body',
             description: 'body',
             required: true,
-            schema: bodySchema
+            schema: downgrade(bodySchema)
         }].filter(Boolean),
         produces: ['application/json'],
         responses: {
@@ -54,7 +73,7 @@ const formatPath = (standard, {
             },
             200: {
                 description: 'Successful response',
-                schema: resultSchema
+                schema: downgrade(resultSchema)
             }
         }
     } : { // openapi
