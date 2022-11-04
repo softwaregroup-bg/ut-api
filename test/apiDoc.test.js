@@ -43,22 +43,39 @@ tap.test('rpcRoutes', async assert => {
 
     registerOpenApi({custom});
 
-    const server = hapi.server();
+    const server = hapi.server({
+        routes: {
+            files: {
+                relativeTo: __dirname
+            }
+        }
+
+    });
     await server.register(inert);
-    server.route(uiRoutes);
+    server.route([...uiRoutes, {
+        method: 'GET',
+        path: '/aa/document/repository/swagger.json',
+        handler: (request, h) => h.file('swagger.json')
+    }]);
     await server.start();
     try {
         const {api: modules} = await got(`${server.info.uri}/aa/api.json`).json();
+        const baseUrl = `${server.info.uri}/aa/api`;
         for (const {namespace, swagger, openapi} of modules) {
             if (swagger) {
-                const swaggerDoc = await got(`${server.info.uri}/aa/api/${namespace}/swagger.json`).json();
+                const swaggerDoc = await got(`${baseUrl}/${namespace}/swagger.json`).json();
                 assert.matchSnapshot(swaggerDoc, `${namespace} namespace swagger document`);
             }
             if (openapi) {
-                const openapiDoc = await got(`${server.info.uri}/aa/api/${namespace}/openapi.json`).json();
+                const openapiDoc = await got(`${baseUrl}/${namespace}/openapi.json`).json();
                 assert.matchSnapshot(openapiDoc, `${namespace} namespace openapi document`);
             }
         }
+        const customSwaggerUrl = '../document/repository/swagger.json';
+        const customSwaggerDoc = await got(new URL(customSwaggerUrl, `${baseUrl}/swagger.html`)).json();
+        assert.matchSnapshot(customSwaggerDoc, 'custom swagger document');
+        const customSwaggerUi = await got(`${baseUrl}/swagger.html?url=${customSwaggerUrl}`);
+        assert.matchSnapshot(customSwaggerUi.body, 'custom swagger UI html');
     } finally {
         await server.stop();
     }
