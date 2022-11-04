@@ -202,12 +202,12 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', 
             method: 'GET',
             path: `${base}/{service}/swagger.html`,
             options: {auth, app: {logError: true}},
-            handler: (request, h) => h.response(swagger(initOAuth, request.params)).type('text/html')
+            handler: (request, h) => h.response(swagger(initOAuth, request.params, request.query)).type('text/html')
         }, {
             method: 'GET',
             path: `${base}/swagger.html`,
             options: {auth, app: {logError: true}},
-            handler: (request, h) => h.response(swagger(initOAuth, {}, request.query)).type('text/html')
+            handler: (request, h) => h.response(swagger(initOAuth, request.params, request.query)).type('text/html')
         }, {
             method: 'GET',
             path: `${base}/swagger/ui/{page*}`,
