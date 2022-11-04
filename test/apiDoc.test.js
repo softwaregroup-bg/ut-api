@@ -61,6 +61,11 @@ tap.test('rpcRoutes', async assert => {
     try {
         const {api: modules} = await got(`${server.info.uri}/aa/api.json`).json();
         const baseUrl = `${server.info.uri}/aa/api`;
+        const customSwaggerUrl = '../document/repository/swagger.json';
+        const customSwaggerDoc = await got(new URL(customSwaggerUrl, `${baseUrl}/swagger.html`)).json();
+        assert.matchSnapshot(customSwaggerDoc, 'custom swagger document');
+        const customSwaggerUi = await got(`${baseUrl}/swagger.html?url=${customSwaggerUrl}`);
+        assert.matchSnapshot(customSwaggerUi.body, 'custom swagger UI html');
         for (const {namespace, swagger, openapi} of modules) {
             if (swagger) {
                 const swaggerDoc = await got(`${baseUrl}/${namespace}/swagger.json`).json();
@@ -70,12 +75,11 @@ tap.test('rpcRoutes', async assert => {
                 const openapiDoc = await got(`${baseUrl}/${namespace}/openapi.json`).json();
                 assert.matchSnapshot(openapiDoc, `${namespace} namespace openapi document`);
             }
+            const customDoc = await got(new URL(`../${customSwaggerUrl}`, `${baseUrl}/${namespace}/swagger.html`)).json();
+            assert.strictSame(customDoc, customSwaggerDoc, `${namespace} namespace custom swagger document`);
+            const customHtml = await got(`${baseUrl}/${namespace}/swagger.html?url=../${customSwaggerUrl}`);
+            assert.equal(customHtml.statusCode, 200, `${namespace} namespace custom swagger ui`);
         }
-        const customSwaggerUrl = '../document/repository/swagger.json';
-        const customSwaggerDoc = await got(new URL(customSwaggerUrl, `${baseUrl}/swagger.html`)).json();
-        assert.matchSnapshot(customSwaggerDoc, 'custom swagger document');
-        const customSwaggerUi = await got(`${baseUrl}/swagger.html?url=${customSwaggerUrl}`);
-        assert.matchSnapshot(customSwaggerUi.body, 'custom swagger UI html');
     } finally {
         await server.stop();
     }
