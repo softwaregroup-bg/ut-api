@@ -1,3 +1,12 @@
+## [8.1.7](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.6...v8.1.7) (2022-11-04)
+
+
+### Bug Fixes
+
+* possibility to load custom swagger via url query parameter ([#17](https://github.com/softwaregroup-bg/ut-api/issues/17)) ([e979bae](https://github.com/softwaregroup-bg/ut-api/commit/e979bae005d883646f5326ca843fc0209a316b16))
+
+
+
 ## [8.1.6](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.5...v8.1.6) (2022-10-21)
 
 
