@@ -1,6 +1,5 @@
 module.exports = (oauth, {service}, {url = './document.json'}) => {
     const basePath = service ? '..' : '.';
-    const oauthParams = oauth && {usePkceWithAuthorizationCodeGrant: true, clientId: 'web', ...oauth};
     return `<!DOCTYPE html>
     <html lang="en">
 
@@ -105,7 +104,7 @@ module.exports = (oauth, {service}, {url = './document.json'}) => {
                     oauth2RedirectUrl: document.location.origin + '/oauth2-redirect.html',
                     validatorUrl: null
                 })
-                ${oauthParams ? `ui.initOAuth(${JSON.stringify(oauthParams)})` : ''}
+                ui.initOAuth(${JSON.stringify({usePkceWithAuthorizationCodeGrant: true, clientId: 'web', ...oauth})})
                 window.ui = ui
             }
 
