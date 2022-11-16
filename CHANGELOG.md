@@ -1,3 +1,12 @@
+## [8.1.8](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.7...v8.1.8) (2022-11-16)
+
+
+### Bug Fixes
+
+* usePkceWithAuthorizationCodeGrant: true and clientId: 'web' by default ([#18](https://github.com/softwaregroup-bg/ut-api/issues/18)) ([1adf055](https://github.com/softwaregroup-bg/ut-api/commit/1adf0555d55f50365ede9b650d85d83ecb0bd49e))
+
+
+
 ## [8.1.7](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.6...v8.1.7) (2022-11-04)
 
 
