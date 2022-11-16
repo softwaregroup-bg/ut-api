@@ -210,7 +210,7 @@ exports[`test/apiDoc.test.js TAP rpcRoutes > custom swagger UI html 1`] = `
                     oauth2RedirectUrl: document.location.origin + '/oauth2-redirect.html',
                     validatorUrl: null
                 })
-                
+                ui.initOAuth({"usePkceWithAuthorizationCodeGrant":true,"clientId":"web"})
                 window.ui = ui
             }
 
