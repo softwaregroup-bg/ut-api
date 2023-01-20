@@ -370,7 +370,7 @@ Object {
                     "id": Object {
                       "description": "Unique identifier of the request",
                       "example": "1",
-                      "maxLength": 36,
+                      "maxLength": 64,
                       "minLength": 1,
                       "type": "string",
                     },
@@ -442,7 +442,7 @@ Object {
                     "id": Object {
                       "description": "Unique identifier of the request",
                       "example": "1",
-                      "maxLength": 36,
+                      "maxLength": 64,
                       "minLength": 1,
                       "type": "string",
                     },
@@ -543,7 +543,7 @@ Object {
                 "id": Object {
                   "description": "Unique identifier of the request",
                   "example": "1",
-                  "maxLength": 36,
+                  "maxLength": 64,
                   "minLength": 1,
                   "type": "string",
                 },
@@ -616,7 +616,7 @@ Object {
                 "id": Object {
                   "description": "Unique identifier of the request",
                   "example": "1",
-                  "maxLength": 36,
+                  "maxLength": 64,
                   "minLength": 1,
                   "type": "string",
                 },
