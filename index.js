@@ -9,7 +9,7 @@ const rpcProps = method => ({
         type: 'string',
         example: '1',
         minLength: 1,
-        maxLength: 36,
+        maxLength: 64,
         description: 'Unique identifier of the request'
     },
     jsonrpc: {
