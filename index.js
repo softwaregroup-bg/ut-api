@@ -51,6 +51,7 @@ const formatPath = (standard, {
     description,
     operationId,
     bodySchema,
+    parameters,
     resultSchema
 }) => ({
     tags,
@@ -64,7 +65,7 @@ const formatPath = (standard, {
             description: 'body',
             required: true,
             schema: downgrade(bodySchema)
-        }].filter(Boolean),
+        }].concat(parameters?.map(({schema: {type}, ...parameter}) => ({...parameter, type}))).filter(Boolean),
         produces: ['application/json'],
         responses: {
             default: {
@@ -86,6 +87,7 @@ const formatPath = (standard, {
                 }
             }
         },
+        ...parameters && {parameters},
         responses: {
             default: {
                 description: 'Invalid request',
@@ -223,7 +225,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
         }
     }
 
-    async function apidoc(auth, namespace, standard = 'swagger') {
+    async function apidoc(auth, namespace, standard = 'swagger', url) {
         await Promise.all(pending);
         if (namespace) {
             const {map, info, doc} = documents[namespace] || {};
@@ -240,7 +242,8 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                     },
                     info,
                     tags: [],
-                    paths: {}
+                    paths: {},
+                    ...url && {servers: [{url}]}
                 };
                 const unique = new Map();
                 for (const mod of map.values()) {
@@ -292,6 +295,14 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 validate,
                 version,
                 route: path = '/rpc/' + method.replace(/\./g, '/'),
+                parameters = [...path.matchAll(/\{([^}]+)\}/g)].map(([, name]) => ({
+                    name,
+                    in: 'path',
+                    required: true,
+                    schema: {
+                        type: 'string'
+                    }
+                })),
                 httpMethod = 'POST',
                 auth = config.auth,
                 app,
@@ -331,6 +342,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                         info: {
                             title: namespace,
                             description: 'UT Microservice API',
+                            contact: {},
                             version
                         },
                         map: new Map()
@@ -344,6 +356,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                     summary: description,
                     description: [].concat(notes).join('\n'),
                     operationId: method,
+                    ...parameters?.length && {parameters},
                     bodySchema,
                     resultSchema: !resultSchema ? {
                         type: 'object'
