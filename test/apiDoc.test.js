@@ -73,6 +73,7 @@ tap.test('rpcRoutes', async assert => {
             }
             if (openapi) {
                 const openapiDoc = await got(`${baseUrl}/${namespace}/openapi.json`).json();
+                delete openapiDoc.servers;
                 assert.matchSnapshot(openapiDoc, `${namespace} namespace openapi document`);
             }
             const customDoc = await got(new URL(`../${customSwaggerUrl}`, `${baseUrl}/${namespace}/swagger.html`)).json();

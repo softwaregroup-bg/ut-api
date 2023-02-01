@@ -339,6 +339,7 @@ Object {
     },
   },
   "info": Object {
+    "contact": Object {},
     "description": "UT Microservice API",
     "title": "subject",
     "version": "1.2.3",
@@ -509,6 +510,7 @@ Object {
 exports[`test/apiDoc.test.js TAP rpcRoutes > subject namespace swagger document 1`] = `
 Object {
   "info": Object {
+    "contact": Object {},
     "description": "UT Microservice API",
     "title": "subject",
     "version": "1.2.3",
