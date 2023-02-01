@@ -1,3 +1,7 @@
+## [8.1.10](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.9...v8.1.10) (2023-02-01)
+
+
+
 ## [8.1.9](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.8...v8.1.9) (2023-01-20)
 
 
