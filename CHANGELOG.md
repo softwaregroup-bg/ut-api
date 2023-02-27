@@ -1,3 +1,12 @@
+## [8.1.12](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.11...v8.1.12) (2023-02-27)
+
+
+### Bug Fixes
+
+* servers url ([ce87c89](https://github.com/softwaregroup-bg/ut-api/commit/ce87c89190b601e698e4466600a2e164e0cd003c))
+
+
+
 ## [8.1.11](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.10...v8.1.11) (2023-02-27)
 
 
