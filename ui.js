@@ -6,11 +6,12 @@ const swagger = require('./swagger');
 const path = require('path');
 const redirect = path.join(uiDistPath, 'oauth2-redirect.html');
 const sortKeys = require('sort-keys');
+const proto = (forwarded, protocol) => forwarded ? forwarded + ':' : protocol;
 
 module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', path = base + '/' + service, initOAuth, proxy, internal, issuers}) => {
     const oidcByHost = {};
     async function getOidc(headers, protocol) {
-        const host = (headers['x-forwarded-proto'] || protocol) + '//' + (headers['x-forwarded-host'] || headers.host);
+        const host = proto(headers['x-forwarded-proto'], protocol) + '//' + (headers['x-forwarded-host'] || headers.host);
         if (issuers && !oidcByHost[host]) {
             try {
                 oidcByHost[host] = await issuers(headers, protocol);
@@ -22,7 +23,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', 
     }
     const formatOpenApi = async({auth: requestAuth, params, headers, url: {protocol, hostname}}, h) => {
         const document = await apidoc(requestAuth, params.namespace, 'openapi',
-            (headers['x-forwarded-proto'] || protocol) + '//' + (headers['x-forwarded-host'] || hostname)
+            proto(headers['x-forwarded-proto'], protocol) + '//' + (headers['x-forwarded-host'] || hostname)
         );
         if (document) {
             const oidc = await getOidc(headers, protocol);
