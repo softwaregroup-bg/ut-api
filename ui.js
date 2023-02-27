@@ -20,8 +20,10 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', 
         }
         return oidcByHost[host];
     }
-    const formatOpenApi = async({auth: requestAuth, params, headers, url: {protocol, origin}}, h) => {
-        const document = await apidoc(requestAuth, params.namespace, 'openapi', origin);
+    const formatOpenApi = async({auth: requestAuth, params, headers, url: {protocol, hostname}}, h) => {
+        const document = await apidoc(requestAuth, params.namespace, 'openapi',
+            (headers['x-forwarded-proto'] || protocol) + '//' + (headers['x-forwarded-host'] || hostname)
+        );
         if (document) {
             const oidc = await getOidc(headers, protocol);
             if (oidc && oidc.length) {
