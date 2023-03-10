@@ -260,11 +260,26 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 return result;
             }
         } else {
-            return Promise.all(Object.entries(documents).map(async([name, {info, doc}]) => {
-                if (info) return [name, {info, swagger: true, openapi: true}];
-                const content = await doc;
-                return [name, {info: content.info, swagger: !!content.swagger, openapi: !!content.openapi}];
-            }));
+            return (await Promise.all(
+                Object.entries(documents).map(async([name, {info, doc, map}]) => {
+                    const permissions = map && auth?.credentials?.permissionMap;
+                    if (permissions) {
+                        let hide = true;
+                        for (const mod of map.values()) {
+                            for (const {operationId} of Object.values(mod)) {
+                                if (await checkAuth(operationId, permissions, true)) {
+                                    hide = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (hide) return false;
+                    }
+                    if (info) return [name, {info, swagger: true, openapi: true}];
+                    const content = await doc;
+                    return [name, {info: content.info, swagger: !!content.swagger, openapi: !!content.openapi}];
+                })
+            )).filter(Boolean);
         }
     };
 
