@@ -1,3 +1,12 @@
+## [8.1.14](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.13...v8.1.14) (2023-03-13)
+
+
+### Bug Fixes
+
+* display api list based on permissions ([#19](https://github.com/softwaregroup-bg/ut-api/issues/19)) ([d2db4d4](https://github.com/softwaregroup-bg/ut-api/commit/d2db4d40885688182d2ca520317c89da6bf72b3f)), closes [#UTCORE-409](https://github.com/softwaregroup-bg/ut-api/issues/UTCORE-409)
+
+
+
 ## [8.1.13](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.12...v8.1.13) (2023-02-28)
 
 
