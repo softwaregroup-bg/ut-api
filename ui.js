@@ -111,7 +111,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', 
                 app: {logError: true},
                 auth,
                 handler: async(request, h) => {
-                    const specs = await apidoc(request.auth);
+                    const specs = await apidoc();
                     const spec = specs.find(([namespace]) => namespace === request.params.namespace);
                     return spec
                         ? spec[1].openapi
@@ -179,7 +179,7 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', 
                 auth,
                 app: {logError: true},
                 handler: async(request, h) => h.response({
-                    api: (await apidoc(request.auth))
+                    api: (await apidoc())
                         .map(([namespace, {host, info: {title, description, version} = {}, swagger, openapi}]) => ({
                             namespace, title, description, version, host, swagger, openapi
                         }))

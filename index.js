@@ -260,11 +260,29 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 return result;
             }
         } else {
-            return Promise.all(Object.entries(documents).map(async([name, {info, doc}]) => {
-                if (info) return [name, {info, swagger: true, openapi: true}];
-                const content = await doc;
-                return [name, {info: content.info, swagger: !!content.swagger, openapi: !!content.openapi}];
-            }));
+            return Object
+                .entries(documents)
+                .reduce(async(promise, [name, {info, doc, map}]) => {
+                    const all = await promise;
+                    const permissions = map && auth?.credentials?.permissionMap;
+                    if (!permissions || await checkAuth(name + '.%', permissions, true)) {
+                        if (info) {
+                            all.push([name, {
+                                info,
+                                swagger: true,
+                                openapi: true
+                            }]);
+                        } else {
+                            const content = await doc;
+                            all.push([name, {
+                                info: content.info,
+                                swagger: !!content.swagger,
+                                openapi: !!content.openapi
+                            }]);
+                        }
+                    }
+                    return all;
+                }, Promise.resolve([]));
         }
     };
 
