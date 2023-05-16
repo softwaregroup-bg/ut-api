@@ -550,7 +550,10 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                                 [body, {mtid, httpResponse}] = await fn.call(object, msg, {
                                     mtid: 'request',
                                     method: operationId,
-                                    auth,
+                                    auth: {
+                                        ...auth,
+                                        ...auth.credentials
+                                    },
                                     forward: forward(headers),
                                     httpRequest: {
                                         url: request.url,
