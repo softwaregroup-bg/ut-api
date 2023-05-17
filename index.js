@@ -430,6 +430,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                 const validate = methodValidator(document, path, method, basePath);
                 const transform = async(request, error, statusCode) => {
                     let result;
+                    const {language, ...auth} = request.auth.credentials || {};
                     if (errorTransform) {
                         const [payload] = await fn.call(
                             object,
@@ -439,7 +440,7 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                                 method: errorTransform,
                                 opcode: operationId,
                                 forward: forward(request.headers),
-                                auth: request.auth
+                                ...request.auth.credentials && {auth, language}
                             }
                         );
                         result = Boom.boomify(error, {statusCode: statusCode || 500});
@@ -546,14 +547,12 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
                             };
 
                             let body, mtid, httpResponse;
+                            const {language, ...authCredentials} = auth.credentials || {};
                             try {
                                 [body, {mtid, httpResponse}] = await fn.call(object, msg, {
                                     mtid: 'request',
                                     method: operationId,
-                                    auth: {
-                                        ...auth,
-                                        ...auth.credentials
-                                    },
+                                    ...auth.credentials && {auth: authCredentials, language},
                                     forward: forward(headers),
                                     httpRequest: {
                                         url: request.url,
