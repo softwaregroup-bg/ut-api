@@ -1,3 +1,12 @@
+## [8.1.15](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.14...v8.1.15) (2023-05-18)
+
+
+### Bug Fixes
+
+* IBS-275: add destructured credentials to the auth prop of meta ([#20](https://github.com/softwaregroup-bg/ut-api/issues/20)) ([25a635b](https://github.com/softwaregroup-bg/ut-api/commit/25a635b87ecd6bd3de77217b06c1d0ab5582169d))
+
+
+
 ## [8.1.14](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.13...v8.1.14) (2023-03-13)
 
 
