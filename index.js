@@ -36,8 +36,9 @@ function skipNullable(where) {
     );
 }
 
-function downgrade({properties, items, nullable, oneOf, ...schema}) {
+function downgrade({properties, items, nullable, oneOf, anyOf, ...schema}) {
     if (oneOf?.[0]) return downgrade(oneOf[0]);
+    if (anyOf?.[0]) return downgrade(anyOf[0]);
     const result = schema;
     if (properties) result.properties = skipNullable(properties);
     if (items) result.items = downgrade(items);
