@@ -1,3 +1,12 @@
+## [8.1.17](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.16...v8.1.17) (2024-07-25)
+
+
+### Bug Fixes
+
+* downgrade anyOf in swagger ([c920531](https://github.com/softwaregroup-bg/ut-api/commit/c920531d07be896cd6a3e54808231a46c800bb40))
+
+
+
 ## [8.1.16](https://github.com/softwaregroup-bg/ut-api/compare/v8.1.15...v8.1.16) (2024-07-24)
 
 
