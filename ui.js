@@ -90,11 +90,33 @@ module.exports = ({apidoc, auth, service = 'server', version, base = '/aa/api', 
     return {
         routes: [{
             method: 'GET',
+            path: `${base}/openapi.json`,
+            options: {
+                app: {logError: true},
+                auth,
+                async handler(request, h) {
+                    request.params = {namespace: (await apidoc()).map(([namespace]) => namespace)};
+                    return formatOpenApi(request, h);
+                }
+            }
+        }, {
+            method: 'GET',
             path: `${base}/{namespace}/openapi.json`,
             options: {
                 app: {logError: true},
                 auth,
                 handler: formatOpenApi
+            }
+        }, {
+            method: 'GET',
+            path: `${base}/swagger.json`,
+            options: {
+                app: {logError: true},
+                auth,
+                async handler(request, h) {
+                    request.params = {namespace: (await apidoc()).map(([namespace]) => namespace)};
+                    return formatSwagger(request, h);
+                }
             }
         }, {
             method: 'GET',

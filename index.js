@@ -229,6 +229,27 @@ module.exports = async(config = {}, errors, issuers, internal, forward = () => u
     async function apidoc(auth, namespace, standard = 'swagger', url) {
         await Promise.all(pending);
         if (namespace) {
+            if (Array.isArray(namespace)) {
+                return namespace.reduce(async(prev, namespace) => {
+                    const all = await prev;
+                    const result = await apidoc(auth, namespace, standard, url);
+                    return {
+                        ...all,
+                        ...result,
+                        info: all.info,
+                        tags: [...all.tags, ...result.tags],
+                        paths: {...all.paths, ...result.paths}
+                    };
+                }, {
+                    tags: [],
+                    info: {
+                        title: 'Api List',
+                        description: 'UT Microservice API',
+                        contact: {},
+                        version: config.version
+                    }
+                });
+            }
             const {map, info, doc} = documents[namespace] || {};
             if (doc) {
                 const content = await doc;
